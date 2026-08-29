@@ -14,6 +14,17 @@ CAT_BOOST        = 4.0     # score multiplier when the guessed bucket matches
 OVERRIDE_DETECT  = True    # drop prior clues ONLY when they provably contradict the new one
 ASK_ATTRIBUTE    = "other"
 
+# Peer-review round 3 — measured on all six conditions before adoption (29 Aug).
+GLOBAL_EXACT     = True    # A2 (Germaine): category-free clue-intersection fallback,
+                           #     gated on cat_sure. +0.049 cat / +0.019 cat+35%,
+                           #     byte-identical everywhere else. Ungated it regressed
+                           #     every clue-drop column — the gate is load-bearing.
+NOEVID_PAGE      = 1       # B (Marcus): show 1 card on evidence-free turns. Improves
+                           #     ALL six conditions (+0.005 clean); browsing and
+                           #     boundary clean MRR both -> 1.0000.
+NOMORE_FILTER    = False   # C (Germaine): "no additional preference" bounds card
+                           #     size. Measured exactly 0.0 everywhere — inert; off.
+
 # Slot-value scheduler (adopted from Germaine, measured on all six conditions).
 # A hit at (turn t, rank r) is worth 0.50 + 0.30/r + 0.02*(11-t). Candidates are
 # assigned to the highest-value slots, so the runner-up is held for a rank-1 slot

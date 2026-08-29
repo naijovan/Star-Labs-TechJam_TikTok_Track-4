@@ -58,10 +58,12 @@ class Agent:
         self.bucket  = collections.defaultdict(set)      # category  -> asins
         self.pop     = {}
         self.docs    = {}
+        self.nclues  = {}
         for line in Path(catalog_path).open(encoding="utf-8"):
             p=json.loads(line); a=str(p["parent_asin"])
             hard,soft=intent_card(p); cl=hard+soft
             for s in set(cl): self.clue_to[s].add(a)
+            self.nclues[a]=len(set(cl))     # distinct constraints the customer could reveal
             self.bucket[coarse_category([str(v) for v in p.get("categories") or []])].add(a)
             self.pop[a]=p.get("rating_number") or 0
             self.docs[a]=terms(" ".join(cl))
@@ -91,8 +93,14 @@ class Agent:
 
     # ---------- state ----------
     def reset(self, session_id, user_profile):
-        self.S[session_id]=dict(clues=[], free=[], cat=None, cat_sure=False, dead=set(), seen=set(),
-                                is_override=False, override_fired=False, superseded=[], last=[])
+        # The evaluator does NOT catch exceptions from reset() — only respond()
+        # is wrapped — so a raise here aborts the entire evaluation run. (Marcus)
+        try:
+            self.S[session_id]=dict(clues=[], free=[], cat=None, cat_sure=False, dead=set(), seen=set(),
+                                    is_override=False, override_fired=False, superseded=[], last=[],
+                                    no_more=False)
+        except Exception:
+            pass
 
     # ---------- parsing ----------
     def _parse(self, msg, st, turn):
@@ -108,6 +116,9 @@ class Agent:
             if "additional preference for" in msg:
                 m=re.search(r"additional preference for ([a-z_]+)", msg)
                 if m: st["dead"].add(m.group(1))
+                # The drained pool is itself information: every distinct constraint
+                # on the target's card has now been disclosed. (Germaine, switch C)
+                st["no_more"]=True
             return
         matched=False
         if turn==1 and "I'm looking for " in msg:
@@ -264,9 +275,26 @@ class Agent:
         soft = None
         clues=list(dict.fromkeys(st["clues"]))
         exact=set(base)
+        gexact=None                       # clue-only intersection, no category gate
         for c in clues:
-            if c in self.clue_to: exact &= self.clue_to[c]
+            if c in self.clue_to:
+                exact &= self.clue_to[c]
+                gexact = set(self.clue_to[c]) if gexact is None else (gexact & self.clue_to[c])
+        if C.NOMORE_FILTER and st.get("no_more") and len(exact)>1:
+            # "I don't have an additional preference" proves the card is drained,
+            # so the target's distinct constraint count is <= what we already hold.
+            f={a for a in exact if self.nclues.get(a, 0) <= len(clues)}
+            if f: exact=f
         if len(exact)==1: return list(exact), 1, "exact"
+        if C.GLOBAL_EXACT and gexact and not st["cat_sure"]:
+            # Constraint identity outranks a possibly-misparsed bucket (Germaine's
+            # category post-filter with graceful fallback) — but only when the
+            # bucket was GUESSED. When the category parsed exactly, the bucket is
+            # ground truth and overriding it regresses every clue-damage condition
+            # (measured: -0.005 on d20/d35/d50 ungated). Accept outright only when
+            # decisive; otherwise adopt it when the in-bucket intersection died.
+            if len(gexact)==1: return list(gexact), 1, "exact_global"
+            if not exact: exact=gexact
         qtext=" ".join(clues + st.get("free", []))
         sc=self._bm25(terms(qtext), base) if qtext.strip() else collections.Counter()
         if sc:
@@ -334,6 +362,10 @@ class Agent:
             # An override session cannot score before the mind-change lands, so
             # anything shown now is untested and must not be recorded as seen.
             recs=[] if gated else self._schedule(ranked, st, turn, top_k)
+            if C.NOEVID_PAGE >= 0 and not st["clues"] and not st["free"]:
+                # Evidence-free turn (browsing/boundary opening): deep speculative
+                # cards can only hit at a bad rank and lock it. (Marcus, switch B)
+                recs=recs[:C.NOEVID_PAGE]
             st["seen"].update(recs); st["last"]=recs
         except Exception:
             recs=st.get("last") or []
