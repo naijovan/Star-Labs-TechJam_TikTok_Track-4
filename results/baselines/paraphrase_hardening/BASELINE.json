@@ -1,0 +1,37 @@
+{
+  "name": "paraphrase_hardening",
+  "description": "Four paraphrase-axis fixes, each gated to lanes that only run when exact parsing already failed, so clean input is untouched by construction: (1) recover verbatim constraint strings from messages no template matched; (2) treat an unmatched turn-1 opening as unknown scenario and withhold seen-recording within the override-gate bound; (3) denormalize conversational phrasings onto the catalog's own metadata idioms; (4) match category buckets by word count, not word set, so set-identical sibling names cannot fall to an alphabetical tie-break.",
+  "contains": [
+    "#3 template-free verbatim constraint recovery (RECOVER_CLUES)",
+    "#4 unknown-scenario seen-hold (UNSURE_SEEN_HOLD)",
+    "#5 catalog-idiom denormalization (DENORM)",
+    "#6 count-based category matching (_scan_category / _nearest_bucket)"
+  ],
+  "agent_source_sha256": "5d4c508f67046459c7d90daaa64fc08dccbfddf1ce4049d8f903d5b1e00aab4e",
+  "agent_git_sha": "05235b05327a535dda8ab23556c53d9b6b573fd1",
+  "git_note": "committed on ben/dev as 363ed20, bd1367d, c326210, 05235b0; per-fix suite deltas in each commit message",
+  "results_run": "results/runs/catfix_05235b0/test_results.jsonl",
+  "results_sha256": "9ce518607bd586931deae4af242b89382866dbf1cd68534134a61a52f9d15d40",
+  "clean_public": 0.98,
+  "verified": {
+    "F1a_B": 0.97392,
+    "F1a_C": 0.97889,
+    "F1b": 0.9458,
+    "F1c": 0.95373,
+    "F1d": 0.96292,
+    "F1e": 0.94104,
+    "F2A": 0.95645,
+    "F2B": 0.97129,
+    "F3": 0.9729,
+    "F5": 0.9551,
+    "F6": 0.87677,
+    "F8": 0.97936
+  },
+  "reference_run": "results/runs/base_8c3ef91/test_results.jsonl (agent 8c3ef91, pre-fix)",
+  "deltas_vs_reference": {
+    "F2A": "+0.06166",
+    "F2B": "+0.04413",
+    "F3": "+0.00240",
+    "all_other_families": "+0.00000 (byte-identical)"
+  }
+}
