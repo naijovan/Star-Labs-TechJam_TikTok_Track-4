@@ -119,7 +119,7 @@ class Agent:
             ptoks=set(terms(" ".join(map(str,profile.get("preference_tags") or []))+" "+str(profile.get("summary") or "")))
             self.S[session_id]=dict(clues=[], free=[], cat=None, cat_sure=False, dead=set(), seen=set(),
                                     is_override=False, override_fired=False, superseded=[], last=[],
-                                    no_more=False, ptoks=ptoks)
+                                    no_more=False, ptoks=ptoks, said_last=None)
         except Exception:
             pass
 
@@ -406,7 +406,16 @@ class Agent:
             if t==turn: here[r]=cand
         return [here[r] for r in sorted(here)]
 
-    def _compose(self, st, n_cand, gated, drained):
+    @staticmethod
+    def _phrase(clue, limit=48):
+        """A clue rendered for speech: trimmed, de-keyed, lower-cased if shouty."""
+        s = re.sub(r"\s+", " ", str(clue)).strip().rstrip(".")
+        if ": " in s and len(s.split(": ", 1)[0]) <= 24:      # "color: blue" -> "blue"
+            s = s.split(": ", 1)[1]
+        if len(s) > limit: s = s[:limit].rsplit(" ", 1)[0] + "…"
+        return s.lower() if s.isupper() else s
+
+    def _compose(self, st, n_cand, gated, drained, new_clues, turn):
         """Proactive clarification — pillar II, stage 6's customer-facing half.
 
         The simulator reads `ask_attribute` and ignores this text entirely
@@ -414,29 +423,68 @@ class Agent:
         here can affect retrieval. It exists because the brief asks the agent to
         "generate structured, proactive clarification prompts that guide user
         convergence", and because this is the only part of the agent a human
-        actually reads. The wording is driven by the same state the retrieval
-        uses: the leaked category, how many clues have landed, how large the
-        surviving pool is, and whether the shopper has run out of preferences.
+        actually reads.
+
+        Every branch is driven by state the retrieval already computed, and each
+        offers several phrasings so a shopper is never told the same sentence
+        twice in a row: `_say` picks the first variant that differs from the last
+        thing said. Acknowledging the clue that just landed is what makes the
+        accumulation visible — the agent proves it heard "100% Polyester" rather
+        than repeating a generic prompt while the pool quietly shrinks.
         """
         thing = st.get("cat") or "options"
         known = len(dict.fromkeys(st.get("clues") or []))
+        # Echo a clue the shopper has not already given us: the simulator can
+        # re-disclose the same string, and parroting it back looks inattentive.
+        prior = set((st.get("clues") or [])[:len(st.get("clues") or []) - len(new_clues)])
+        fresh = [c for c in new_clues if c not in prior] or list(new_clues)
+        heard = self._phrase(fresh[-1]) if fresh else None
+
         if gated:
-            return (f"Understood — before I narrow the {thing} down, is there anything "
-                    f"else you'd want me to weigh?")
-        if drained:
-            return (f"That's everything I needed. These are the {thing} that fit what "
-                    f"you've told me — say the word if you'd like me to look wider.")
-        if known == 0:
-            return (f"Here's a starting point for {thing}. What matters most to you — "
-                    f"material, colour, fit, or the occasion?")
-        if n_cand and n_cand > C.OVERGENERAL_AT:
-            return (f"A lot of {thing} still fit — about {n_cand}. Tell me one thing that "
-                    f"would rule most of them out, like the material or how you'll use it.")
-        if n_cand and n_cand <= C.CONFIDENT_AT:
-            return ("I think these are it. If none is right, one more detail and "
-                    "I'll correct course.")
-        return (f"Narrowed to {n_cand} based on {known} thing{'' if known == 1 else 's'} "
-                f"you've told me. What else matters?")
+            # An override session cannot convert yet, so these turns are spent
+            # listening. Reflect what arrived rather than stalling identically.
+            if heard:
+                opts = [f"Got it — {heard}. Anything else before I put a list together?",
+                        f"Noted: {heard}. What else should I weigh for these {thing}?",
+                        f"That helps — {heard}. Any other detail worth matching on?"]
+            else:
+                opts = [f"Still listening before I narrow the {thing} down — what else matters?",
+                        f"Tell me anything else about the {thing} you have in mind.",
+                        f"Before I recommend, is there another detail I should know?"]
+        elif drained:
+            opts = [f"That's everything I needed. These are the {thing} that fit what you've told me.",
+                    f"No more questions from me — here are the closest {thing} on what I know.",
+                    f"Working with everything you've given me; say the word to widen the search."]
+        elif known == 0:
+            opts = [f"Here's a starting point for {thing}. What matters most — material, colour, fit, or the occasion?",
+                    f"To narrow these {thing} down, tell me one thing that matters — fabric, colour, or how you'll use them.",
+                    f"Point me in a direction on these {thing} and I'll tighten the list."]
+        elif n_cand and n_cand > C.OVERGENERAL_AT:
+            lead = f"Got it — {heard}. " if heard else ""
+            opts = [f"{lead}About {n_cand} {thing} still fit. Tell me one thing that would rule most of them out.",
+                    f"{lead}That leaves {n_cand} candidates — what would eliminate the majority?",
+                    f"{lead}Still {n_cand} to choose from. Material, colour, or use case?"]
+        elif n_cand and n_cand <= C.CONFIDENT_AT:
+            opts = ["I think these are it. If none is right, one more detail and I'll correct course.",
+                    f"Down to {n_cand}. Say if I've missed the mark and I'll adjust.",
+                    "This looks like your shortlist — anything still off?"]
+        else:
+            plural = "" if known == 1 else "s"
+            lead = f"{heard.capitalize()} noted. " if heard else ""
+            opts = [f"{lead}Narrowed to {n_cand} on {known} thing{plural} you've told me. What else matters?",
+                    f"{lead}That brings it to {n_cand}. Anything more to go on?",
+                    f"{lead}{n_cand} left after {known} detail{plural}. What else should I match?"]
+        return self._say(st, opts)
+
+    @staticmethod
+    def _say(st, options):
+        """First phrasing that isn't what we just said — never repeat back-to-back."""
+        for text in options:
+            if text != st.get("said_last"):
+                st["said_last"] = text
+                return text
+        st["said_last"] = options[0]
+        return options[0]
 
     def respond(self, session_id, user_message, turn, top_k):
         st=self.S.get(session_id)
@@ -462,7 +510,8 @@ class Agent:
         drained = C.ASK_ATTRIBUTE in st.get("dead",()) or st.get("no_more", False)
         ask=C.ASK_ATTRIBUTE if C.ASK_ATTRIBUTE not in st.get("dead",()) else "feature"
         try:
-            msg=self._compose(st, nc, bool(gated), drained)
+            new_cl=st["clues"][n_before:] if len(st["clues"])>=n_before else []
+            msg=self._compose(st, nc, bool(gated), drained, new_cl, turn)
             if not isinstance(msg,str) or not msg: raise ValueError
         except Exception:
             msg="Anything else that matters — fabric, fit, or how you'll wear it?"
