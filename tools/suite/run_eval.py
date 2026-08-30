@@ -29,7 +29,10 @@ from tools.suite.harness import (
 CASES = "results/test_cases.jsonl"
 CATALOG = "data/catalog.jsonl"
 DATASET = "data/public_set.jsonl"
-PUBLIC_BASELINE = 0.97870
+# Was 0.97870, recorded against the remediation2_pathfix agent. The canonicalizer
+# and scheduling work since then took MTTC 2.065 -> 2.000, so the clean public score
+# is now exactly 0.50 + 0.30 + 0.20*0.9. Pass --expect-baseline to gate on another.
+PUBLIC_BASELINE = 0.98000
 BASELINE_TOLERANCE = 1e-5
 
 

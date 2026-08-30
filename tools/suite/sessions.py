@@ -657,7 +657,10 @@ def write_cases(cases: Sequence[TestCase], path: str | Path, overwrite: bool = F
             f"or move the existing suite aside."
         )
     target.parent.mkdir(parents=True, exist_ok=True)
-    with target.open("w", encoding="utf-8") as handle:
+    # newline="\n" is load-bearing: the frozen SHA256 is over LF-terminated bytes,
+    # and the default text mode rewrites "\n" to "\r\n" on Windows, so the same
+    # deterministic cases hash differently there and preflight aborts.
+    with target.open("w", encoding="utf-8", newline="\n") as handle:
         for case in cases:
             handle.write(json.dumps(case.as_row(), ensure_ascii=False, sort_keys=True) + "\n")
     return target

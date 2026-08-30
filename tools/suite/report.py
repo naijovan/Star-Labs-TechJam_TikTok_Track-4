@@ -16,7 +16,7 @@ import statistics
 from pathlib import Path
 from typing import Dict, List, Sequence
 
-PUBLIC_REFERENCE = 0.97870
+PUBLIC_REFERENCE = 0.98000  # keep in step with run_eval.PUBLIC_BASELINE
 
 
 def load(path: str | Path) -> List[dict]:
