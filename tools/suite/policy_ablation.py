@@ -95,16 +95,23 @@ def run_case(agent, case, catalog, policy):
         return ranked, nc, route
 
     def spy(session_id, user_message, turn, top_k):
-        response = original_respond(session_id, user_message, turn, top_k)
+        response = spy.__wrapped_target__(session_id, user_message, turn, top_k)
         log.append((turn, [d["parent_asin"] for d in response["recommendations"]]))
         return response
 
-    agent._retrieve, agent.respond = retrieve, spy
+    agent._retrieve = retrieve
     try:
         with contextlib.ExitStack() as stack:
             stack.enter_context(_Patcher(case))
             stack.enter_context(turn1_policy(agent, policy))
-            result = LE.evaluate(agent, [_sample(case)], ids, cats, prods)
+            # Spy OUTSIDE the policy so the log records the post-clip page.
+            inner = agent.respond
+            spy.__wrapped_target__ = inner
+            agent.respond = spy
+            try:
+                result = LE.evaluate(agent, [_sample(case)], ids, cats, prods)
+            finally:
+                agent.respond = inner
     finally:
         agent.respond, agent._retrieve = original_respond, original_retrieve
 

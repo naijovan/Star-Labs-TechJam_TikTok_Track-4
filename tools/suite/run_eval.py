@@ -33,7 +33,7 @@ PUBLIC_BASELINE = 0.97870
 BASELINE_TOLERANCE = 1e-5
 
 
-def preflight(cases_path=CASES, catalog_path=CATALOG) -> dict:
+def preflight(cases_path=CASES, catalog_path=CATALOG, expect_baseline=PUBLIC_BASELINE) -> dict:
     print("=" * 74)
     print("STAGE 3A - PREFLIGHT")
     print("=" * 74)
@@ -70,7 +70,7 @@ def preflight(cases_path=CASES, catalog_path=CATALOG) -> dict:
         print(f"    {key:24s} {value}")
     print(f"    config                   {json.dumps(manifest['config'], sort_keys=True)}")
 
-    print(f"\n[3] clean public baseline (gate: {PUBLIC_BASELINE:.5f})")
+    print(f"\n[3] clean public baseline (gate: {expect_baseline:.5f})")
     build_start = time.time()
     agent = Agent(catalog_path)
     build_seconds = time.time() - build_start
@@ -78,7 +78,7 @@ def preflight(cases_path=CASES, catalog_path=CATALOG) -> dict:
     samples = LE.load_jsonl(DATASET)
     result = LE.evaluate(agent, samples, ids, cats, prods)
     score = result["recommended_technical_score"]
-    baseline_ok = abs(score - PUBLIC_BASELINE) < BASELINE_TOLERANCE
+    baseline_ok = abs(score - expect_baseline) < BASELINE_TOLERANCE
     ok &= baseline_ok
     print(f"    measured {score:.5f}  hit {result['hit_rate_at_10']:.3f} "
           f"mrr {result['mrr']:.4f} mttc {result['mttc']:.3f}   "
@@ -248,12 +248,15 @@ def main() -> int:
     parser.add_argument("--resume", action="store_true")
     parser.add_argument("--budget-seconds", type=float, default=0.0)
     parser.add_argument("--skip-smoke", action="store_true")
+    parser.add_argument("--expect-baseline", type=float, default=PUBLIC_BASELINE,
+                        help="clean-public gate; pass the new value after an accepted "
+                             "remediation so drift is still caught")
     parser.add_argument("--run-id", default=None,
                         help="output dir name; defaults to the agent git sha. Use this "
                              "when the tree is dirty so runs are not conflated.")
     args = parser.parse_args()
 
-    state = preflight(args.cases, args.catalog)
+    state = preflight(args.cases, args.catalog, args.expect_baseline)
     if not state["ok"]:
         print("\nPREFLIGHT FAILED -- aborting.")
         return 1

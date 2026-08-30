@@ -311,7 +311,7 @@ def run_session(agent: Agent, case: dict, catalog, *, clip: bool = False,
     original_respond = agent.respond
 
     def spy(session_id, user_message, turn, top_k):
-        response = original_respond(session_id, user_message, turn, top_k)
+        response = spy.__wrapped_target__(session_id, user_message, turn, top_k)
         captured["session_id"] = session_id
         turns.append({
             "turn": turn,
@@ -321,7 +321,10 @@ def run_session(agent: Agent, case: dict, catalog, *, clip: bool = False,
         })
         return response
 
-    agent.respond = spy
+    # The spy must wrap the OUTERMOST respond so it logs what the evaluator
+    # actually received.  Installing it before the clip context logged the
+    # pre-clip page -- a diagnostic-only bug, but it made `turns` unusable for
+    # exactly the mechanism F3 exists to measure.
     try:
         with contextlib.ExitStack() as stack:
             stack.enter_context(_Patcher(case))
@@ -329,7 +332,13 @@ def run_session(agent: Agent, case: dict, catalog, *, clip: bool = False,
                 stack.enter_context(config_override(config))
             if clip:
                 stack.enter_context(turn1_clip(agent))
-            result = LE.evaluate(agent, [_sample_for(case)], ids, cats, prods)
+            inner = agent.respond
+            spy.__wrapped_target__ = inner
+            agent.respond = spy
+            try:
+                result = LE.evaluate(agent, [_sample_for(case)], ids, cats, prods)
+            finally:
+                agent.respond = inner
     finally:
         agent.respond = original_respond
 
