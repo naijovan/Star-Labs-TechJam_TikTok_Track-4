@@ -1,6 +1,6 @@
 """Track 4 Shopping Copilot agent. Standard library only unless USE_DENSE."""
 from __future__ import annotations
-import json, math, re, difflib, collections
+import json, math, re, difflib, collections, sqlite3
 from pathlib import Path
 try:    from submission import config as C
 except Exception:  import config as C
@@ -66,6 +66,8 @@ class Agent:
         self.pop     = {}
         self.docs    = {}
         self.nclues  = {}
+        self.ptoks   = {}
+        self._fts_rows = []
         for line in Path(catalog_path).open(encoding="utf-8"):
             p=json.loads(line); a=str(p["parent_asin"])
             hard,soft=intent_card(p); cl=hard+soft
@@ -74,6 +76,8 @@ class Agent:
             self.bucket[coarse_category([str(v) for v in p.get("categories") or []])].add(a)
             self.pop[a]=p.get("rating_number") or 0
             self.docs[a]=terms(" ".join(cl))
+            if C.PROFILE_WEIGHT: self.ptoks[a]=set(terms(_searchable(p)))
+            if C.USE_FTS: self._fts_rows.append((a,_searchable(p)))
         self.keys=list(self.bucket)
         self.cat_tok=collections.defaultdict(set)          # word -> buckets containing it
         for k in self.keys:
@@ -86,6 +90,13 @@ class Agent:
             for t in set(d): self.post[t].add(a)
         self.idf={t: math.log(1+(n-len(s)+0.5)/(len(s)+0.5)) for t,s in self.post.items()}
         self.tracer=Tracer(getattr(C,"TRACE_PATH",""))
+        self.fts=None
+        if C.USE_FTS and self._fts_rows:
+            self.fts=sqlite3.connect(":memory:")
+            self.fts.execute("CREATE VIRTUAL TABLE p USING fts5(asin UNINDEXED, body, tokenize='unicode61 remove_diacritics 2')")
+            self.fts.executemany("INSERT INTO p VALUES (?,?)", self._fts_rows)
+            self.fts.commit()
+        self._fts_rows=[]
         self.dense=None
         if C.USE_DENSE:
             try:
@@ -104,9 +115,11 @@ class Agent:
         # The evaluator does NOT catch exceptions from reset() — only respond()
         # is wrapped — so a raise here aborts the entire evaluation run. (Marcus)
         try:
+            profile=user_profile if isinstance(user_profile,dict) else {}
+            ptoks=set(terms(" ".join(map(str,profile.get("preference_tags") or []))+" "+str(profile.get("summary") or "")))
             self.S[session_id]=dict(clues=[], free=[], cat=None, cat_sure=False, dead=set(), seen=set(),
                                     is_override=False, override_fired=False, superseded=[], last=[],
-                                    no_more=False)
+                                    no_more=False, ptoks=ptoks)
         except Exception:
             pass
 
@@ -266,6 +279,26 @@ class Agent:
         return near[0] if near else None
 
     # ---------- retrieval ----------
+    def _fts_search(self, qtext, limit=300):
+        """P4 lane: full product text, so it can match words that never appear in
+        any emitted clue. OR-terms; deterministic via the asin tiebreak."""
+        uniq=list(dict.fromkeys(terms(qtext)))[:40]
+        if not self.fts or not uniq: return []
+        try:
+            rows=self.fts.execute("SELECT asin FROM p WHERE p MATCH ? ORDER BY bm25(p), asin LIMIT ?",
+                                  (" OR ".join(f'"{t}"' for t in uniq), limit)).fetchall()
+        except sqlite3.Error:
+            return []
+        return [r[0] for r in rows]
+
+    def _profile_key(self, st):
+        """P2c: popularity blended with preference-tag affinity (Germaine's shape)."""
+        pt=st.get("ptoks") or set()
+        def key(a):
+            aff=len(pt & self.ptoks.get(a,()))/max(1,len(pt)) if pt else 0.0
+            return (-(math.log1p(self.pop[a]) + C.PROFILE_WEIGHT*10.0*aff), a)
+        return key
+
     def _bm25(self, q, base):
         sc=collections.Counter()
         for t in q:
@@ -331,11 +364,24 @@ class Agent:
                     wtop=wide[wr[0]]; wsec=wide[wr[1]] if len(wr)>1 else 1e-9
                     if wtop/max(wsec,1e-9) > top/max(second,1e-9):
                         return wr, len(wr), "wide"
+            if weak and self.fts:                                  # P4: full-text lane
+                f=[a for a in self._fts_search(qtext) if a in base]
+                if f:
+                    rr=collections.Counter()
+                    for i,a in enumerate(ranked[:200]): rr[a]+=1/(60+i)
+                    for i,a in enumerate(f[:200]):      rr[a]+=1/(60+i)
+                    ranked=[a for a,_ in sorted(rr.items(), key=lambda kv:(-kv[1],-self.pop[kv[0]], kv[0]))]
             if exact:
                 ranked=sorted(exact,key=lambda a:(-self.pop[a],a))+[a for a in ranked if a not in exact]
             return ranked, (len(exact) if exact else len(ranked)), ("weak" if weak else "bm25")
+        if self.fts and qtext.strip():                             # P4: clue-vocab miss
+            f=[a for a in self._fts_search(qtext) if a in base]
+            if f:
+                rest=sorted((a for a in base if a not in set(f)), key=lambda a:(-self.pop[a],a))
+                return f+rest, len(f), "fts_floor"
         floor = soft if soft else base
-        return sorted(floor,key=lambda a:(-self.pop[a],a)), len(floor), "floor"
+        fkey = self._profile_key(st) if (C.PROFILE_WEIGHT and st.get("ptoks")) else (lambda a:(-self.pop[a],a))
+        return sorted(floor,key=fkey), len(floor), "floor"
 
     # ---------- main ----------
     def _schedule(self, ranked, st, turn, top_k):

@@ -32,3 +32,13 @@ NOMORE_FILTER    = False   # C (Germaine): "no additional preference" bounds car
 # HOLD_UNTIL / HOLD_PAGE, which are kept only for the ablation probes in tools/.
 MAX_TURNS = 10
 TRACE_PATH        = ""      # set to a file path (e.g. "trace.jsonl") to log one JSONL record per turn
+# Pillar III — personalized context distillation (adopted 30 Aug, measured).
+# preference_tags + summary words, blended into the EVIDENCE-FREE ordering only:
+#   score = log1p(rating_number) + PROFILE_WEIGHT * 10 * tag-affinity
+# Improves ALL six conditions (+0.0003..+0.0006) and payout-rephrased (+0.0004);
+# wide flat optimum (0.35-0.75 byte-identical); degrades at >=1.0 where profile
+# words start outvoting popularity. Deterministic 0.9787 across hash seeds.
+PROFILE_WEIGHT    = 0.35
+USE_FTS           = False   # P4 full-text FTS5 lane: measured WORSE on 5 of 9
+                            # conditions (dilutes good rankings under clue damage);
+                            # rejected with numbers, kept only as an ablation switch.
