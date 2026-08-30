@@ -4,6 +4,13 @@ import json, math, re, difflib, collections
 from pathlib import Path
 try:    from submission import config as C
 except Exception:  import config as C
+try:    from submission.tracelog import Tracer
+except Exception:
+    try: from tracelog import Tracer
+    except Exception:
+        class Tracer:                     # tracing is optional, never required
+            def __init__(self, path=""): pass
+            def write(self, record): pass
 
 TOKEN_RE = re.compile(r"[a-z0-9]+", re.IGNORECASE)
 STOP = {"a","an","and","are","as","at","be","but","by","for","from","i","in","is","it","me","my",
@@ -78,6 +85,7 @@ class Agent:
         for a,d in self.docs.items():
             for t in set(d): self.post[t].add(a)
         self.idf={t: math.log(1+(n-len(s)+0.5)/(len(s)+0.5)) for t,s in self.post.items()}
+        self.tracer=Tracer(getattr(C,"TRACE_PATH",""))
         self.dense=None
         if C.USE_DENSE:
             try:
@@ -355,6 +363,7 @@ class Agent:
     def respond(self, session_id, user_message, turn, top_k):
         st=self.S.get(session_id)
         if st is None: self.reset(session_id,{}); st=self.S[session_id]
+        n_before=len(st["clues"]); nc=None; route=None; gated=None; err=None
         try:
             self._parse(user_message, st, turn)
             ranked, nc, route = self._retrieve(st)
@@ -367,9 +376,17 @@ class Agent:
                 # cards can only hit at a bad rank and lock it. (Marcus, switch B)
                 recs=recs[:C.NOEVID_PAGE]
             st["seen"].update(recs); st["last"]=recs
-        except Exception:
+        except Exception as e:
+            err=repr(e)
             recs=st.get("last") or []
         ask=C.ASK_ATTRIBUTE if C.ASK_ATTRIBUTE not in st.get("dead",()) else "feature"
+        self.tracer.write({
+            "session":session_id, "turn":turn, "msg":user_message,
+            "new_clues":st["clues"][n_before:] if len(st["clues"])>=n_before else list(st["clues"]),
+            "cat":st.get("cat"), "cat_sure":st.get("cat_sure"),
+            "route":route, "cand":nc, "gated":gated,
+            "emitted":recs[:top_k], "ask":ask,
+            "dead":sorted(st.get("dead",())), "error":err})
         return {"message":"Anything else that matters — fabric, fit, or how you'll wear it?",
                 "ask_attribute":ask,
                 "recommendations":[{"parent_asin":a} for a in recs[:top_k]],

@@ -31,3 +31,4 @@ NOMORE_FILTER    = False   # C (Germaine): "no additional preference" bounds car
 # next turn instead of being shown at rank 2 now. Supersedes EMIT_THRESHOLD /
 # HOLD_UNTIL / HOLD_PAGE, which are kept only for the ablation probes in tools/.
 MAX_TURNS = 10
+TRACE_PATH        = ""      # set to a file path (e.g. "trace.jsonl") to log one JSONL record per turn
