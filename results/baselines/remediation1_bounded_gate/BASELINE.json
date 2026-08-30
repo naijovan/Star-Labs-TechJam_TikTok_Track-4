@@ -1,0 +1,17 @@
+{
+  "name": "remediation1_bounded_gate",
+  "description": "Finding #1: override gate is advisory and expires after OVERRIDE_GATE_MAX_TURN=4",
+  "agent_source_sha256": "ea74d4dfdc920fe3500fb5fe4037401c4b8e63b9c3387fc775093d97a3aaa553",
+  "agent_git_sha": "de61dda7dc0eee4b6058d46ffd493673a36613b5",
+  "git_note": "tree is dirty; the fix is uncommitted, so agent_source_sha256 is the authoritative identity",
+  "results_run": "results/runs/fix1v2_ea74d4df/test_results.jsonl",
+  "results_sha256": "fd846e3bc83f3ee3a10dc53958d9c3518d5fd3135dab637b6ff87390d2ca1c47",
+  "clean_public": 0.9787,
+  "verified": {
+    "F1a_B": 0.97255,
+    "F1a_C": 0.97495,
+    "F2A": 0.89286,
+    "F2B": 0.92708,
+    "F7": 0.95749
+  }
+}
