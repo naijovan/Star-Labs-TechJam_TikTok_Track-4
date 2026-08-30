@@ -274,6 +274,10 @@ class Agent:
             matched=True
             return
         if turn==1:                                                # TEMPLATE-FREE OPENING
+            # No template matched, so the scenario is genuinely unknown -- this is
+            # NOT evidence of "not an override", which is what leaving is_override
+            # False would silently assert. See the seen-recording rule in respond().
+            st["unsure"]=True
             st["cat"]=self._scan_category(msg)
             for c in self._recover(msg):
                 if c not in st["clues"]: st["clues"].append(c)
@@ -723,7 +727,17 @@ class Agent:
             # Only turns that COULD have converted prove a candidate wrong. Cards
             # shown while the override gate is shut were never checked against the
             # target, so recording them would blacklist the answer itself.
-            if not gated: st["seen"].update(recs)
+            # Recording a card as seen asserts it was TESTED against the target and
+            # rejected. That is only true on a turn that could have converted. The
+            # override gate encodes this when the scenario is known; when the opening
+            # matched no template it is not known, and assuming "not an override" is
+            # how the blacklist-the-answer trap reopens under paraphrase -- the target
+            # is shown pre-override, the evaluator discards the hit, and _schedule
+            # then skips it on the turns that could actually win. Withhold instead:
+            # bounded by the same turn limit as the gate, and still SHOWN either way.
+            unsure_hold = (getattr(C,"UNSURE_SEEN_HOLD",False) and st.get("unsure")
+                           and turn <= C.OVERRIDE_GATE_MAX_TURN)
+            if not gated and not unsure_hold: st["seen"].update(recs)
             st["last"]=recs
         except Exception as e:
             err=repr(e)

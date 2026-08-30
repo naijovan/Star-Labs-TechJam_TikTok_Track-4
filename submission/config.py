@@ -96,6 +96,10 @@ SHOW_WHILE_GATED  = True    # intent_override: display the current best guesses 
                             # like the agent has nothing to say.
 DENSE_UNRESOLVED_ONLY = True  # dense escalation fires only when NO clue resolved
                               # in the exact index (paraphrase signature)
+UNSURE_SEEN_HOLD = True    # when turn 1 matched no template the scenario is unknown,
+                           # so do not record shown cards as proven negatives until
+                           # past OVERRIDE_GATE_MAX_TURN. Cards are still shown; only
+                           # the "already ruled out" bookkeeping waits.
 RECOVER_CLUES    = True    # template-free constraint recovery: scan a message that no
                            # template matched for constraint strings that are verbatim
                            # in the index. The simulator copies constraints from the
