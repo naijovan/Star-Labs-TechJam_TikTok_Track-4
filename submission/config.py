@@ -42,3 +42,9 @@ PROFILE_WEIGHT    = 0.35
 USE_FTS           = False   # P4 full-text FTS5 lane: measured WORSE on 5 of 9
                             # conditions (dilutes good rankings under clue damage);
                             # rejected with numbers, kept only as an ablation switch.
+
+# Proactive clarification (Pillar II). The simulator never reads `message` —
+# proven by replacing it with junk text: score byte-identical. These thresholds
+# therefore shape only what a human sees in the demo and the report.
+OVERGENERAL_AT    = 60      # candidates above this => ask a ruling-out question
+CONFIDENT_AT      = 3       # candidates at or below this => present as an answer

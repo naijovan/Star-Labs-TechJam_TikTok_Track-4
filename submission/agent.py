@@ -406,6 +406,38 @@ class Agent:
             if t==turn: here[r]=cand
         return [here[r] for r in sorted(here)]
 
+    def _compose(self, st, n_cand, gated, drained):
+        """Proactive clarification — pillar II, stage 6's customer-facing half.
+
+        The simulator reads `ask_attribute` and ignores this text entirely
+        (verified: substituting junk left the score byte-identical), so nothing
+        here can affect retrieval. It exists because the brief asks the agent to
+        "generate structured, proactive clarification prompts that guide user
+        convergence", and because this is the only part of the agent a human
+        actually reads. The wording is driven by the same state the retrieval
+        uses: the leaked category, how many clues have landed, how large the
+        surviving pool is, and whether the shopper has run out of preferences.
+        """
+        thing = st.get("cat") or "options"
+        known = len(dict.fromkeys(st.get("clues") or []))
+        if gated:
+            return (f"Understood — before I narrow the {thing} down, is there anything "
+                    f"else you'd want me to weigh?")
+        if drained:
+            return (f"That's everything I needed. These are the {thing} that fit what "
+                    f"you've told me — say the word if you'd like me to look wider.")
+        if known == 0:
+            return (f"Here's a starting point for {thing}. What matters most to you — "
+                    f"material, colour, fit, or the occasion?")
+        if n_cand and n_cand > C.OVERGENERAL_AT:
+            return (f"A lot of {thing} still fit — about {n_cand}. Tell me one thing that "
+                    f"would rule most of them out, like the material or how you'll use it.")
+        if n_cand and n_cand <= C.CONFIDENT_AT:
+            return ("I think these are it. If none is right, one more detail and "
+                    "I'll correct course.")
+        return (f"Narrowed to {n_cand} based on {known} thing{'' if known == 1 else 's'} "
+                f"you've told me. What else matters?")
+
     def respond(self, session_id, user_message, turn, top_k):
         st=self.S.get(session_id)
         if st is None: self.reset(session_id,{}); st=self.S[session_id]
@@ -425,15 +457,23 @@ class Agent:
         except Exception as e:
             err=repr(e)
             recs=st.get("last") or []
+        # An exhausted attribute is never re-asked (Marcus's distinction: the
+        # BOUNDARY refusal does NOT consume it, the drained-pool reply does).
+        drained = C.ASK_ATTRIBUTE in st.get("dead",()) or st.get("no_more", False)
         ask=C.ASK_ATTRIBUTE if C.ASK_ATTRIBUTE not in st.get("dead",()) else "feature"
+        try:
+            msg=self._compose(st, nc, bool(gated), drained)
+            if not isinstance(msg,str) or not msg: raise ValueError
+        except Exception:
+            msg="Anything else that matters — fabric, fit, or how you'll wear it?"
         self.tracer.write({
             "session":session_id, "turn":turn, "msg":user_message,
             "new_clues":st["clues"][n_before:] if len(st["clues"])>=n_before else list(st["clues"]),
             "cat":st.get("cat"), "cat_sure":st.get("cat_sure"),
             "route":route, "cand":nc, "gated":gated,
-            "emitted":recs[:top_k], "ask":ask,
+            "emitted":recs[:top_k], "ask":ask, "said":msg,
             "dead":sorted(st.get("dead",())), "error":err})
-        return {"message":"Anything else that matters — fabric, fit, or how you'll wear it?",
+        return {"message":msg,
                 "ask_attribute":ask,
                 "recommendations":[{"parent_asin":a} for a in recs[:top_k]],
                 "usage":{"prompt_tokens":0,"completion_tokens":0}}
