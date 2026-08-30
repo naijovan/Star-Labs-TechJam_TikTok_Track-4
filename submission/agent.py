@@ -59,8 +59,44 @@ def coarse_category(values):
     return " ".join(out[-2:]) if out else "clothing item"
 
 
+
+DEFAULT_CATALOG_NAME = "catalog.jsonl"
+
+
+def default_catalog_path():
+    """Resolve the default catalogue WITHOUT depending on the process CWD.
+
+    FINDING #5. The default used to be the bare relative literal
+    "data/catalog.jsonl", which Python resolves against os.getcwd().  Constructing
+    Agent() from any directory other than the repository root therefore raised
+    FileNotFoundError from an UNWRAPPED __init__ -- and the evaluator only wraps
+    respond(), so that is a whole-run zero rather than a bad turn.
+
+    Resolution is module-relative and tries a short, ordered, explicit list of
+    layouts.  Only used when the caller passes no catalog_path: an explicit path
+    is always honoured verbatim, so nothing can silently repair a caller's typo.
+    """
+    here = Path(__file__).resolve().parent
+    candidates = (
+        here.parent / "data" / DEFAULT_CATALOG_NAME,        # <repo>/submission/agent.py
+        here / "data" / DEFAULT_CATALOG_NAME,               # catalogue inside submission/
+        here.parent.parent / "data" / DEFAULT_CATALOG_NAME, # one level deeper nesting
+        Path("data") / DEFAULT_CATALOG_NAME,                # legacy CWD-relative, last
+    )
+    for candidate in candidates:
+        try:
+            if candidate.is_file():
+                return str(candidate)
+        except OSError:
+            continue
+    # Nothing found: return the canonical layout so the error names a real path.
+    return str(candidates[0])
+
+
 class Agent:
-    def __init__(self, catalog_path="data/catalog.jsonl"):
+    def __init__(self, catalog_path=None):
+        # An explicitly supplied path always wins and is used verbatim (Finding #5).
+        catalog_path = default_catalog_path() if catalog_path is None else catalog_path
         self.clue_to = collections.defaultdict(set)      # exact clue -> asins
         self.bucket  = collections.defaultdict(set)      # category  -> asins
         self.pop     = {}
@@ -150,6 +186,10 @@ class Agent:
                 cat,req=rest.split(". A key requirement is:",1)
                 st["cat"]=cat.strip(); st["clues"].append(req.strip().rstrip("."))
             else:
+                # An unrecognised opening makes an override PLAUSIBLE, not certain.
+                # is_override is only a prediction that a mind-change is coming; it
+                # must never be treated as a fact that can silence the agent for a
+                # whole session. The consequence is bounded in respond(). (Finding #1)
                 cat,_,tail=rest.partition(". ")
                 st["cat"]=cat.strip(); st["is_override"]=True
                 if tail.strip(): st["clues"].append(tail.strip().rstrip("."))
@@ -526,7 +566,13 @@ class Agent:
         try:
             self._parse(user_message, st, turn)
             ranked, nc, route = self._retrieve(st)
-            gated = st["is_override"] and not st["override_fired"]
+            # FINDING #1. The gate is ADVISORY and BOUNDED. An override can only
+            # arrive on turn 3 or 4 (behavior_for: rng.choice([3,4])), so a gate
+            # still closed after that turn is proof the turn-1 prediction was
+            # wrong. Never suppress recommendations for an entire session: when
+            # parsing is uncertain, keep recommending.
+            gated = (st["is_override"] and not st["override_fired"]
+                     and turn <= C.OVERRIDE_GATE_MAX_TURN)
             # An override session cannot score before the mind-change lands, so
             # anything shown now is untested and must not be recorded as seen.
             recs=self._schedule(ranked, st, turn, top_k)
@@ -535,6 +581,23 @@ class Agent:
                 # show the current best guesses but do NOT record them as seen, or
                 # they would be excluded on the turns that can actually win.
                 recs = recs[:top_k] if C.SHOW_WHILE_GATED else []
+            if turn == 1:
+                # FINDING #2. Turn 1 is the turn with the least evidence -- at most
+                # one clue -- and the evaluator locks the rank of the first hit for
+                # the whole session, so a wide speculative page can only cap it.
+                # The scheduler's own slot values already say this:
+                #   slot(2,1) = 0.98  >  slot(1,2) = 0.85
+                # i.e. the runner-up is worth more held for a rank-1 slot next turn
+                # than shown at rank 2 now. NOEVID_PAGE already enforced exactly
+                # this for evidence-free openings (browsing, boundary); buying was
+                # the only case that escaped, because its opening carries a clue.
+                # This makes turn 1 uniform and removes the exception.
+                #
+                # MERGE NOTE: this now runs AFTER the always-show-a-list branch
+                # above, so it caps gated turn-1 pages too. One card is still a
+                # list, so the conversational contract is kept, and the rank-lock
+                # argument applies to gated turns exactly as it does to open ones.
+                recs=recs[:C.TURN1_PAGE]
             if C.NOEVID_PAGE >= 0 and not st["clues"] and not st["free"]:
                 # Evidence-free turn (browsing/boundary opening): deep speculative
                 # cards can only hit at a bad rank and lock it. (Marcus, switch B)

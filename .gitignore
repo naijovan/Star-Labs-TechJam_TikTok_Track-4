@@ -16,3 +16,12 @@ docs/participant_release_checklist.md
 tests/test_5core_builder.py
 tests/test_organizer_pipeline.py
 *.log
+
+# Participant-kit catalogue archive (see DATA_ATTRIBUTION.md before redistributing).
+data/catalog.jsonl.gz
+# Generated suite artefacts: the frozen test definitions and every evaluation run.
+# Regenerable from SUITE_VERSION + master seed; SHA256s recorded in the baseline
+# manifests below, which ARE tracked.
+results/*
+!results/baselines/
+results/baselines/*/*.py
