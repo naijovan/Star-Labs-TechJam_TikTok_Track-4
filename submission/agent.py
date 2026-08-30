@@ -236,6 +236,7 @@ class Agent:
         for k in self.keys:
             for w in TOKEN_RE.findall(k.lower()): self.cat_tok[w].add(k)
         self.cat_words={k:set(TOKEN_RE.findall(k.lower())) for k in self.keys}
+        self.cat_cnt={k:collections.Counter(TOKEN_RE.findall(k.lower())) for k in self.keys}
         n=len(self.docs); self.avgdl=sum(len(d) for d in self.docs.values())/max(n,1)
         self.tf={a:collections.Counter(d) for a,d in self.docs.items()}
         self.post=collections.defaultdict(set)
@@ -441,30 +442,58 @@ class Agent:
             if not kept: st["free"] = []
 
     def _scan_category(self, msg):
-        """Template-free: find the most specific bucket whose every word appears in msg."""
-        mw=set(w.lower() for w in TOKEN_RE.findall(msg))
+        """Template-free: find the most specific bucket whose every word appears in msg.
+
+        Word COUNTS, not word sets. coarse_category glues path segments, so bucket
+        names repeat words, and siblings can be set-identical: "Sunglasses & Eyewear
+        Accessories Sunglasses" and "Accessories Sunglasses & Eyewear Accessories"
+        are both {sunglasses, eyewear, accessories}. Under sets the winner fell to
+        the tie-break; under counts the message itself separates them -- a message
+        saying "sunglasses" twice satisfies sunglasses:2 and not accessories:2.
+        Count-subset first; the old set-subset stays as the fallback so nothing
+        that matched before can stop matching.
+        """
+        mc=collections.Counter(w.lower() for w in TOKEN_RE.findall(msg))
         cand=set()
-        for w in mw: cand |= self.cat_tok.get(w, set())
-        best=(0, None, 0)
-        for k in sorted(cand):
-            kw=self.cat_words[k]
-            if kw <= mw:
+        for w in mc: cand |= self.cat_tok.get(w, set())
+        for exact in (True, False):
+            best=(0, None, 0)
+            for k in sorted(cand):
+                if exact:
+                    kc=self.cat_cnt[k]
+                    if kc - mc: continue
+                    n=sum(kc.values())
+                else:
+                    kw=self.cat_words[k]
+                    if not kw <= set(mc): continue
+                    n=len(kw)
                 sz=len(self.bucket[k])
-                if len(kw) > best[0] or (len(kw)==best[0] and sz < best[2]):
-                    best=(len(kw), k, sz)
-        return best[1]
+                if n > best[0] or (n==best[0] and sz < best[2]):
+                    best=(n, k, sz)
+            if best[1]: return best[1]
+        return None
 
     def _nearest_bucket(self, q):
-        """Order-invariant bucket match. difflib alone fails on reordered words."""
-        qs=set(TOKEN_RE.findall(q.lower()))
+        """Order-invariant bucket match. difflib alone fails on reordered words.
+
+        Multiset Jaccard for the same reason _scan_category counts words: set
+        Jaccard scores set-identical siblings 1.0 apiece and alphabetical order
+        picks the winner. Ties that survive counting fall to whole-string
+        similarity against the query rather than to the alphabet.
+        """
+        qc=collections.Counter(TOKEN_RE.findall(q.lower()))
         cand=set()
-        for w in qs: cand |= self.cat_tok.get(w, set())
-        best=(0.0, None)
+        for w in qc: cand |= self.cat_tok.get(w, set())
+        best=(0.0, 0.0, None)
         for k in sorted(cand):
-            ks=self.cat_words[k]
-            j=len(qs & ks)/len(qs | ks)
-            if j > best[0]: best=(j, k)
-        if best[0] >= C.JACCARD_MIN: return best[1]
+            kc=self.cat_cnt[k]
+            j=sum((qc & kc).values())/max(sum((qc | kc).values()),1)
+            if j > best[0]:
+                best=(j, difflib.SequenceMatcher(None, q.lower(), k.lower()).ratio(), k)
+            elif j == best[0] and best[2] is not None:
+                r=difflib.SequenceMatcher(None, q.lower(), k.lower()).ratio()
+                if r > best[1]: best=(j, r, k)
+        if best[0] >= C.JACCARD_MIN: return best[2]
         near=difflib.get_close_matches(q, self.keys, n=1, cutoff=C.FUZZY_CATEGORY)
         return near[0] if near else None
 
