@@ -22,6 +22,40 @@ MATERIAL_RE = re.compile(r"\b(cotton|polyester|nylon|leather|wool|spandex|silk|r
 COLOR_RE = re.compile(r"\b(black|white|blue|red|pink|green|brown|gray|grey|purple|yellow|orange)\b", re.I)
 SEARCH_FIELDS = ("title","features","details","description","categories","store")
 
+# Lexical canonicalization — a distilled query-rewriting layer (stdlib QR).
+# Industry systems bridge the shopper-vs-catalog vocabulary gap by rewriting
+# queries BEFORE retrieval; this is that idea reduced to a deterministic table
+# mapping colloquial words onto the evaluator's own color/material vocabulary.
+# Consulted ONLY for clues that failed to resolve in the exact index, so clean
+# input is untouched by construction.
+CANON = {
+    # colors -> COLOR_RE vocabulary
+    "violet":"purple","lilac":"purple","lavender":"purple","mauve":"purple",
+    "crimson":"red","scarlet":"red","maroon":"red","burgundy":"red","cherry":"red",
+    "navy":"blue","azure":"blue","cobalt":"blue","indigo":"blue","turquoise":"blue",
+    "charcoal":"gray","slate":"gray","ash":"gray","graphite":"gray",
+    "ivory":"white","cream":"white","offwhite":"white","eggshell":"white",
+    "ebony":"black","jet":"black","onyx":"black",
+    "tan":"brown","beige":"brown","khaki":"brown","taupe":"brown","chocolate":"brown",
+    "olive":"green","emerald":"green","sage":"green","mint":"green",
+    "fuchsia":"pink","rose":"pink","blush":"pink","salmon":"pink",
+    "golden":"yellow","mustard":"yellow","amber":"orange","rust":"orange",
+    # materials -> MATERIAL_RE vocabulary
+    "poly":"polyester","polyblend":"polyester",
+    "pleather":"leather","suede":"leather","hide":"leather",
+    "merino":"wool","woolen":"wool","cashmere":"wool","fleecewool":"wool",
+    "lycra":"spandex","elastane":"spandex",
+    "satin":"silk","viscose":"rayon","denim":"cotton",
+}
+def _canon_text(t):
+    out=[]
+    changed=False
+    for w in TOKEN_RE.findall(t):
+        lw=w.lower()
+        if lw in CANON: out.append(CANON[lw]); changed=True
+        else: out.append(w)
+    return (" ".join(out), changed)
+
 def terms(t): return [w.lower() for w in TOKEN_RE.findall(t) if len(w)>1 and w.lower() not in STOP]
 def _flat(v):
     if isinstance(v,dict):  return [f"{k}: {x}" for k,x in v.items() if x not in (None,"",[])]
@@ -357,10 +391,24 @@ class Agent:
         clues=list(dict.fromkeys(st["clues"]))
         exact=set(base)
         gexact=None                       # clue-only intersection, no category gate
+        canon_extra=[]                    # canonical tokens for the BM25 query
         for c in clues:
-            if c in self.clue_to:
-                exact &= self.clue_to[c]
-                gexact = set(self.clue_to[c]) if gexact is None else (gexact & self.clue_to[c])
+            cc=c
+            if C.CANONICALIZE and c not in self.clue_to:
+                # Query rewriting, gated exactly like the dense lane: only a clue
+                # that resolves nowhere may be rewritten. "color: violet" becomes
+                # "color: purple"; if the rewrite resolves, it joins the
+                # intersection; either way its canonical words reach BM25.
+                rew, changed=_canon_text(c)
+                if changed:
+                    canon_extra.append(rew)
+                    low=c.lower()
+                    if low.startswith("color: ") and CANON.get(low[7:].strip()):
+                        rew="color: "+CANON[low[7:].strip()]
+                    if rew in self.clue_to: cc=rew
+            if cc in self.clue_to:
+                exact &= self.clue_to[cc]
+                gexact = set(self.clue_to[cc]) if gexact is None else (gexact & self.clue_to[cc])
         if C.NOMORE_FILTER and st.get("no_more") and len(exact)>1:
             # "I don't have an additional preference" proves the card is drained,
             # so the target's distinct constraint count is <= what we already hold.
@@ -376,7 +424,7 @@ class Agent:
             # decisive; otherwise adopt it when the in-bucket intersection died.
             if len(gexact)==1: return list(gexact), 1, "exact_global"
             if not exact: exact=gexact
-        qtext=" ".join(clues + st.get("free", []))
+        qtext=" ".join(clues + canon_extra + st.get("free", []))
         sc=self._bm25(terms(qtext), base) if qtext.strip() else collections.Counter()
         if sc:
             if soft:

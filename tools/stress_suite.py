@@ -218,6 +218,47 @@ def make_agent(variant):
                 try:     return super()._retrieve(st)
                 finally: st["clues"] = full
         return TimeDecay('data/catalog.jsonl')
+    if variant == "densefull":
+        # Full-text embeddings: the shipped dense lane embeds each product's
+        # EMITTED CONSTRAINTS (what it would say); this variant embeds the raw
+        # searchable text, where "soft / plush / cozy"-style vocabulary lives.
+        # Targets the attribute-inference gap, not just the synonym gap.
+        import json as _j
+        import submission.agent as A
+        C.USE_DENSE = True
+        ag = Agent('data/catalog.jsonl'); C.USE_DENSE = False
+        if not ag.dense: raise RuntimeError("dense stack not importable")
+        pairs = []
+        for line in open('data/catalog.jsonl', encoding='utf-8'):
+            pr = _j.loads(line)
+            pairs.append((str(pr["parent_asin"]), A._searchable(pr)[:400]))
+        ag.asins = [a for a, _ in pairs]
+        ag.E = ag.model.encode([t for _, t in pairs], batch_size=256,
+                               convert_to_numpy=True, normalize_embeddings=True,
+                               show_progress_bar=False)
+        ag.didx = {a: i for i, a in enumerate(ag.asins)}
+        return ag
+    if variant == "ce2":
+        # Top-tier open reranker (bge-reranker-v2-m3), same integration as "ce".
+        from sentence_transformers import CrossEncoder
+        model = CrossEncoder('BAAI/bge-reranker-v2-m3', max_length=512)
+        class CE2(Agent):
+            def __init__(self, path):
+                super().__init__(path)
+                self.clues_of = {}
+                for cstr, asins in self.clue_to.items():
+                    for x in asins: self.clues_of.setdefault(x, []).append(cstr)
+            def _retrieve(self, st):
+                ranked, nc, route = super()._retrieve(st)
+                if route in ("bm25", "weak", "floor") and len(ranked) > 1 and st["clues"]:
+                    head = ranked[:20]
+                    q = " ; ".join(st["clues"])[:400]
+                    pairs = [(q, " ; ".join(sorted(self.clues_of.get(x, [""]))[:6])[:400]) for x in head]
+                    sc = model.predict(pairs, show_progress_bar=False)
+                    order = sorted(zip(head, sc), key=lambda t: (-float(t[1]), -self.pop[t[0]], t[0]))
+                    ranked = [x for x, _ in order] + ranked[20:]
+                return ranked, nc, route
+        return CE2('data/catalog.jsonl')
     if variant == "ce":
         from sentence_transformers import CrossEncoder
         model = CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2')

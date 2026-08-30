@@ -1,4 +1,5 @@
 """All tunable constants. Sweep these, never edit logic to tune."""
+import os
 EMIT_THRESHOLD   = 5       # commit when candidate set <= this
 HOLD_UNTIL       = 3       # ...or when the turn reaches this, whichever first
 BM25_K1          = 1.2
@@ -22,7 +23,17 @@ JACCARD_MIN      = 0.70    # token-set overlap needed to accept a fuzzy bucket.
 FUZZY_CATEGORY   = 0.60    # difflib cutoff when the leaked category misses a bucket
 WEAK_ABS         = 1.5     # top BM25 score below this => weak evidence
 WEAK_RATIO       = 1.15    # top1/top2 below this => flat distribution => weak
-USE_DENSE        = False   # set True only if sentence-transformers is importable
+# Dense escalation lane — opt-in via environment, never on by default.
+# The scoring path must survive a no-network, no-third-party-deps, unknown-timeout
+# harness, so the default is the pure-stdlib cascade (identical score on every
+# official-shape condition). Setting TECHJAM_DENSE=1 enables the lane IF
+# sentence-transformers imports and weights are available; every failure mode
+# (missing deps, missing weights, no network) falls back silently to stdlib.
+# Measured with the resolution gate: byte-identical on clean/drops/category,
+# +0.036 on synonym-paraphrased constraints. Cost: ~75 s startup on MPS (longer
+# CPU-only — the reason this is opt-in rather than auto: a harness timeout kill
+# is a zeroed run, and their timeout cannot be detected from inside).
+USE_DENSE        = os.environ.get("TECHJAM_DENSE", "").strip().lower() not in ("", "0", "false")
 DENSE_MODEL      = "BAAI/bge-small-en-v1.5"
 CAT_BOOST        = 4.0     # score multiplier when the guessed bucket matches
 OVERRIDE_DETECT  = True    # drop prior clues ONLY when they provably contradict the new one
@@ -85,3 +96,7 @@ SHOW_WHILE_GATED  = True    # intent_override: display the current best guesses 
                             # like the agent has nothing to say.
 DENSE_UNRESOLVED_ONLY = True  # dense escalation fires only when NO clue resolved
                               # in the exact index (paraphrase signature)
+CANONICALIZE     = True    # stdlib query-rewriting: colloquial color/material words
+                           # mapped onto the evaluator's vocabulary, consulted only
+                           # for clues that resolved nowhere (clean input untouched
+                           # by construction).
