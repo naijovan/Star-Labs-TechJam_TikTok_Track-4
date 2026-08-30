@@ -13,6 +13,10 @@ DENSE_MODEL      = "BAAI/bge-small-en-v1.5"
 CAT_BOOST        = 4.0     # score multiplier when the guessed bucket matches
 OVERRIDE_DETECT  = True    # drop prior clues ONLY when they provably contradict the new one
 ASK_ATTRIBUTE    = "other"
+OVERRIDE_GATE_MAX_TURN = 4  # Finding #1: the override gate is advisory and expires.
+                            # behavior_for draws the override turn from
+                            # rng.choice([3,4]); a gate still closed after turn 4
+                            # was a wrong turn-1 prediction, so stop suppressing.
 
 # Peer-review round 3 — measured on all six conditions before adoption (29 Aug).
 GLOBAL_EXACT     = True    # A2 (Germaine): category-free clue-intersection fallback,
