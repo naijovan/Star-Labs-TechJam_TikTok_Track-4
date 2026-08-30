@@ -110,6 +110,10 @@ RECOVER_MIN_LEN  = 8       # ignore very short constraint strings ("fabric", "Im
 RECOVER_MAX_DF   = 2000    # ...and ignore ones held by more than this many products.
                            # Both gates are about precision, not recall: a false clue
                            # intersects the candidate pool down to the wrong product.
+DENORM           = True    # inverse rewrites from conversational phrasings back onto
+                           # the catalog's own metadata idioms ("55 percent"->"55%",
+                           # "fastens with a Zipper"->"Zipper closure", carrier-prefix
+                           # peeling). Unresolved-clue lane only, like CANONICALIZE.
 CANONICALIZE     = True    # stdlib query-rewriting: colloquial color/material words
                            # mapped onto the evaluator's vocabulary, consulted only
                            # for clues that resolved nowhere (clean input untouched

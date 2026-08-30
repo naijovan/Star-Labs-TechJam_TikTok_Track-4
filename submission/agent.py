@@ -82,6 +82,45 @@ def _canon_text(t):
         else: out.append(w)
     return (" ".join(out), changed)
 
+# Denormalization — inverse rewrites from conversational phrasings back onto the
+# CATALOG'S OWN metadata idioms ("100% Cotton", "Zipper closure", "Imported",
+# "55% Polyester"). Grounded the same way the canonicalizer is grounded in the
+# evaluator's color/material vocabulary: the right-hand sides are the idioms the
+# constraint index is actually made of, so these are not paraphrase-specific
+# rules, they are the catalog's vocabulary stated backwards. Consulted only for
+# clues that resolved nowhere.
+_CARRIER_RE = re.compile(
+    r"^(?:here is what i need|what i need is|it should be|it needs to be|i need|i want|"
+    r"it is|it's|its|they are|this is|that is|it comes|made out of|made of|made from|"
+    r"it has|with)\s*[:,]?\s+", re.I)
+_PCT_RE     = re.compile(r"\b(\d+)\s*percent\b", re.I)
+_ENTIRE_RE  = re.compile(r"\b(?:made\s+)?(?:entirely|purely|wholly|completely)\s+(?:of|from|in)\s+", re.I)
+_FASTEN_RE  = re.compile(r"^(?:it\s+)?(?:fastens?|closes?|does\s+up|zips?\s+up)\s+with\s+(?:a|an)\s+(.+)$", re.I)
+_ABROAD_RE  = re.compile(r"\b(?:brought\s+in|shipped|comes?|sourced)\s+from\s+(?:overseas|abroad)\b|\bmade\s+(?:overseas|abroad|internationally)\b", re.I)
+
+def _denorm(c):
+    """Candidate rewrites of an unresolved clue, most-specific first."""
+    out=[]
+    def add(x):
+        x=x.strip(" \t.,;:")
+        if x and x!=c and x not in out: out.append(x)
+    add(_PCT_RE.sub(r"\1%", c))
+    if _ABROAD_RE.search(c): add("Imported")
+    m=_FASTEN_RE.match(c.strip())
+    if m: add(m.group(1).strip(" \t.,;:")+" closure")
+    if _ENTIRE_RE.search(c): add(_ENTIRE_RE.sub("100% ", c))
+    # peel carrier prefixes, re-applying the other rules at each depth
+    t=c.strip()
+    for _ in range(3):
+        t2=_CARRIER_RE.sub("", t)
+        if t2==t: break
+        t=t2; add(t)
+        add(_PCT_RE.sub(r"\1%", t))
+        if _ENTIRE_RE.search(t): add(_ENTIRE_RE.sub("100% ", t))
+        m=_FASTEN_RE.match(t)
+        if m: add(m.group(1).strip(" \t.,;:")+" closure")
+    return out
+
 def terms(t): return [w.lower() for w in TOKEN_RE.findall(t) if len(w)>1 and w.lower() not in STOP]
 def _flat(v):
     if isinstance(v,dict):  return [f"{k}: {x}" for k,x in v.items() if x not in (None,"",[])]
@@ -174,6 +213,14 @@ class Agent:
             self.docs[a]=terms(" ".join(cl))
             if C.PROFILE_WEIGHT: self.ptoks[a]=set(terms(_searchable(p)))
             if C.USE_FTS: self._fts_rows.append((a,_searchable(p)))
+        # Case-insensitive resolution for the unresolved-clue lane only: a folded
+        # form maps to its exact key when that is UNAMBIGUOUS, else None. "it is
+        # canvas" peels to "canvas" but the index key is "Canvas"; adopting it is
+        # safe only when exactly one casing exists.
+        self.clue_ci={}
+        for s in self.clue_to:
+            low=s.lower()
+            self.clue_ci[low]=None if (low in self.clue_ci and self.clue_ci[low]!=s) else s
         # Recovery index for paraphrased messages: first token -> the constraint
         # strings starting with it, longest first so the longest match at a
         # position wins. Only selective strings are indexed; see config.
@@ -463,7 +510,23 @@ class Agent:
         canon_extra=[]                    # canonical tokens for the BM25 query
         for c in clues:
             cc=c
-            if C.CANONICALIZE and c not in self.clue_to:
+            if c not in self.clue_to:
+                # The unresolved-clue lane. Everything below runs ONLY for a clue
+                # that resolves nowhere, so clean input is untouched by
+                # construction. Three rewriters, in order of confidence:
+                # embedded verbatim, denormalization, canonicalization.
+                if getattr(C,"DENORM",False):
+                    # A carrier-wrapped clue ("here is what I need: <verbatim>")
+                    # still CONTAINS the constraint; take the longest embedded one.
+                    emb=self._recover(c)
+                    if emb: cc=max(emb,key=len)
+                    else:
+                        for cand in _denorm(c):
+                            hit=cand if cand in self.clue_to else self.clue_ci.get(cand.lower())
+                            if hit: cc=hit; break
+                        else:
+                            canon_extra.extend(_denorm(c)[:2])
+            if cc is c and C.CANONICALIZE and c not in self.clue_to:
                 # Query rewriting, gated exactly like the dense lane: only a clue
                 # that resolves nowhere may be rewritten. "color: violet" becomes
                 # "color: purple"; if the rewrite resolves, it joins the
