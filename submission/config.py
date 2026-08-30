@@ -85,3 +85,7 @@ SHOW_WHILE_GATED  = True    # intent_override: display the current best guesses 
                             # like the agent has nothing to say.
 DENSE_UNRESOLVED_ONLY = True  # dense escalation fires only when NO clue resolved
                               # in the exact index (paraphrase signature)
+TRUST_BM25_WHEN_UNRESOLVED = True
+# If clues exist but none resolve in the exact index, the exact set still
+# equals the untouched base pool and should not override BM25 ordering.
+# Remaining candidates are appended afterward so the retrieval floor is kept.
