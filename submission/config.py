@@ -56,3 +56,5 @@ SHOW_WHILE_GATED  = True    # intent_override: display the current best guesses 
                             # recorded as seen, so this is score-neutral - measured
                             # byte-identical - and it stops the transcript looking
                             # like the agent has nothing to say.
+DENSE_UNRESOLVED_ONLY = True  # dense escalation fires only when NO clue resolved
+                              # in the exact index (paraphrase signature)

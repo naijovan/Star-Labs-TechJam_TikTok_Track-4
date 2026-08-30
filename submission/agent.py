@@ -345,7 +345,12 @@ class Agent:
             ranked=[a for a,_ in sorted(sc.items(), key=lambda kv:(-kv[1], -self.pop[kv[0]], kv[0]))]
             top=sc[ranked[0]]; second=sc[ranked[1]] if len(ranked)>1 else 1e-9
             weak = top < C.WEAK_ABS or (top/max(second,1e-9)) < C.WEAK_RATIO
-            if weak and self.dense:                                # CONFIDENCE-TRIGGERED ESCALATION
+            # Escalate to dense ONLY when constraints exist but NONE resolved in
+            # the exact index — the signature of paraphrased wording. When clues
+            # resolve, exact/token matching is provably stronger (stress axis A:
+            # ungated dense cost -0.018 on clean; this gate keeps clean intact).
+            unresolved = bool(clues) and gexact is None
+            if weak and self.dense and (unresolved or not C.DENSE_UNRESOLVED_ONLY):   # CONFIDENCE-TRIGGERED ESCALATION
                 b=list(base)
                 qv=self.model.encode([" ".join(clues)],convert_to_numpy=True,normalize_embeddings=True,show_progress_bar=False)[0]
                 sims=self.E[[self.didx[a] for a in b]] @ qv
