@@ -1,0 +1,25 @@
+{
+  "name": "remediation2_pathfix",
+  "contains": [
+    "#1 bounded override gate (OVERRIDE_GATE_MAX_TURN=4)",
+    "#2 module-relative default catalog path"
+  ],
+  "agent_source_sha256": "37ff0a0f4e10aeb7c0cf193a539e6855086fb29f5d8827296bec953d0de538a0",
+  "agent_git_sha": "de61dda7dc0eee4b6058d46ffd493673a36613b5",
+  "git_note": "tree dirty; agent_source_sha256 is the authoritative identity",
+  "results_run": "results/runs/fix2_37ff0a0f/test_results.jsonl",
+  "results_sha256": "335d6200fa53bc1ce6829059e340f4c2069b472cc2b8e59ec89ae7bd8e671d91",
+  "verified": {
+    "clean_public": 0.9787,
+    "F1a_B": 0.97255,
+    "F1a_C": 0.97495,
+    "F2A": 0.89286,
+    "F2B": 0.92708,
+    "F3": 0.95894,
+    "F5": 0.94904,
+    "F6": 0.87232,
+    "F7": 0.95749,
+    "F8": 0.97767
+  },
+  "env_assertions": "13/13 pass"
+}
