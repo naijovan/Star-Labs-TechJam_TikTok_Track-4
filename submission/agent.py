@@ -581,6 +581,23 @@ class Agent:
                 # show the current best guesses but do NOT record them as seen, or
                 # they would be excluded on the turns that can actually win.
                 recs = recs[:top_k] if C.SHOW_WHILE_GATED else []
+            if turn == 1:
+                # FINDING #2. Turn 1 is the turn with the least evidence -- at most
+                # one clue -- and the evaluator locks the rank of the first hit for
+                # the whole session, so a wide speculative page can only cap it.
+                # The scheduler's own slot values already say this:
+                #   slot(2,1) = 0.98  >  slot(1,2) = 0.85
+                # i.e. the runner-up is worth more held for a rank-1 slot next turn
+                # than shown at rank 2 now. NOEVID_PAGE already enforced exactly
+                # this for evidence-free openings (browsing, boundary); buying was
+                # the only case that escaped, because its opening carries a clue.
+                # This makes turn 1 uniform and removes the exception.
+                #
+                # MERGE NOTE: this now runs AFTER the always-show-a-list branch
+                # above, so it caps gated turn-1 pages too. One card is still a
+                # list, so the conversational contract is kept, and the rank-lock
+                # argument applies to gated turns exactly as it does to open ones.
+                recs=recs[:C.TURN1_PAGE]
             if C.NOEVID_PAGE >= 0 and not st["clues"] and not st["free"]:
                 # Evidence-free turn (browsing/boundary opening): deep speculative
                 # cards can only hit at a bad rank and lock it. (Marcus, switch B)

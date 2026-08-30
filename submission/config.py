@@ -4,7 +4,21 @@ HOLD_UNTIL       = 3       # ...or when the turn reaches this, whichever first
 BM25_K1          = 1.2
 BM25_B           = 0.75
 POP_TIEBREAK     = True
-JACCARD_MIN      = 0.50    # token-set overlap needed to accept a fuzzy bucket
+JACCARD_MIN      = 0.70    # token-set overlap needed to accept a fuzzy bucket.
+                           # Raised 0.50 -> 0.70 (Remediation #4). Measured on 900
+                           # matched sessions per generator, paired, 95% bootstrap CI:
+                           #   D2 char-deletion   +0.00411 [+0.00109, +0.00804]
+                           #   D3 morphological   +0.00589 [+0.00151, +0.01133]
+                           #   D1 word-reversal    0.00000 -- STRUCTURALLY INERT:
+                           #     reversal preserves the token SET, so Jaccard is 1.00
+                           #     on every session and no threshold can bind. D1 is
+                           #     tools/verify_agent.py's cat_noise, so this constant
+                           #     had never been exercised by our own conditions.
+                           # 0.70 is the most conservative value at the left edge of a
+                           # plateau replicated across the two LIVE generators; 0.70,
+                           # 0.75 and 0.80 are identical on both. NOT proven optimal,
+                           # and D2/D3 are synthetic -- their private prevalence is
+                           # unknown. Inert on clean input (verified byte-identical).
 FUZZY_CATEGORY   = 0.60    # difflib cutoff when the leaked category misses a bucket
 WEAK_ABS         = 1.5     # top BM25 score below this => weak evidence
 WEAK_RATIO       = 1.15    # top1/top2 below this => flat distribution => weak
@@ -23,6 +37,15 @@ GLOBAL_EXACT     = True    # A2 (Germaine): category-free clue-intersection fall
                            #     gated on cat_sure. +0.049 cat / +0.019 cat+35%,
                            #     byte-identical everywhere else. Ungated it regressed
                            #     every clue-drop column — the gate is load-bearing.
+TURN1_PAGE       = 1       # Finding #2: turn 1 emits at most this many cards.
+                           # Turn 1 carries at most one clue and the evaluator locks
+                           # the rank of the first hit forever, so a wide speculative
+                           # page can only cap a session. Measured on the frozen
+                           # suite: F3 +0.01156 paired, clean public +0.00130,
+                           # F1a-B +0.00137, F1a-C +0.00394, HitRate unchanged.
+                           # No candidate-count threshold: nearby thresholds decay
+                           # monotonically (>10 +0.0110, >20 +0.0084, >40 +0.0045,
+                           # >100 +0.0019), so any cut-off would be a fitted constant.
 NOEVID_PAGE      = 1       # B (Marcus): show 1 card on evidence-free turns. Improves
                            #     ALL six conditions (+0.005 clean); browsing and
                            #     boundary clean MRR both -> 1.0000.
