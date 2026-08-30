@@ -96,6 +96,16 @@ SHOW_WHILE_GATED  = True    # intent_override: display the current best guesses 
                             # like the agent has nothing to say.
 DENSE_UNRESOLVED_ONLY = True  # dense escalation fires only when NO clue resolved
                               # in the exact index (paraphrase signature)
+RECOVER_CLUES    = True    # template-free constraint recovery: scan a message that no
+                           # template matched for constraint strings that are verbatim
+                           # in the index. The simulator copies constraints from the
+                           # target's metadata, so paraphrasing the prose AROUND them
+                           # leaves them byte-identical and still findable.
+RECOVER_MIN_LEN  = 8       # ignore very short constraint strings ("fabric", "Imported"):
+                           # they occur incidentally in ordinary prose.
+RECOVER_MAX_DF   = 2000    # ...and ignore ones held by more than this many products.
+                           # Both gates are about precision, not recall: a false clue
+                           # intersects the candidate pool down to the wrong product.
 CANONICALIZE     = True    # stdlib query-rewriting: colloquial color/material words
                            # mapped onto the evaluator's vocabulary, consulted only
                            # for clues that resolved nowhere (clean input untouched

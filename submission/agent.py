@@ -174,6 +174,16 @@ class Agent:
             self.docs[a]=terms(" ".join(cl))
             if C.PROFILE_WEIGHT: self.ptoks[a]=set(terms(_searchable(p)))
             if C.USE_FTS: self._fts_rows.append((a,_searchable(p)))
+        # Recovery index for paraphrased messages: first token -> the constraint
+        # strings starting with it, longest first so the longest match at a
+        # position wins. Only selective strings are indexed; see config.
+        self.clue_start=collections.defaultdict(list)
+        if getattr(C,"RECOVER_CLUES",False):
+            for s,owners in self.clue_to.items():
+                if len(s)<C.RECOVER_MIN_LEN or len(owners)>C.RECOVER_MAX_DF: continue
+                m=TOKEN_RE.search(s)
+                if m: self.clue_start[m.group(0).lower()].append(s)
+            for w in self.clue_start: self.clue_start[w].sort(key=len, reverse=True)
         self.keys=list(self.bucket)
         self.cat_tok=collections.defaultdict(set)          # word -> buckets containing it
         for k in self.keys:
@@ -265,6 +275,8 @@ class Agent:
             return
         if turn==1:                                                # TEMPLATE-FREE OPENING
             st["cat"]=self._scan_category(msg)
+            for c in self._recover(msg):
+                if c not in st["clues"]: st["clues"].append(c)
             st["free"].append(msg)
             return
         if "Actually, ignore my earlier preference" in msg:
@@ -280,7 +292,34 @@ class Agent:
             return
         if re.search(r"ignore|forget|second thought|instead", msg, re.I):
             st["override_fired"]=True
-        st["free"].append(msg)                                     # TEMPLATE-FREE PAYOUT
+        for c in self._recover(msg):                               # TEMPLATE-FREE PAYOUT
+            if c not in st["clues"]: st["clues"].append(c)
+        st["free"].append(msg)
+
+    def _recover(self, msg):
+        """Find constraint strings sitting verbatim inside a message no template matched.
+
+        The simulator builds its prose around constraint strings copied from the
+        target's own metadata, so rewording the wrapper ("I'm after..." for "I'm
+        looking for...") leaves the constraint itself byte-identical. The template
+        parser sees only the wrapper and drops the whole message into the BM25 bag,
+        which is why paraphrase costs Layer 1 entirely rather than degrading it.
+
+        Scan left to right, take the LONGEST indexed constraint starting at each word
+        boundary, and skip past what was consumed so nested substrings cannot both
+        fire. Case-sensitive on purpose: the constraint is copied verbatim, and
+        case-folding buys nothing while admitting prose collisions.
+        """
+        if not getattr(C,"RECOVER_CLUES",False) or not self.clue_start: return []
+        out, pos = [], 0
+        for m in TOKEN_RE.finditer(msg):
+            if m.start()<pos: continue
+            for cand in self.clue_start.get(m.group(0).lower(), ()):
+                if msg.startswith(cand, m.start()):
+                    if cand not in out: out.append(cand)
+                    pos=m.start()+len(cand)
+                    break
+        return out
 
     def _split_clues(self, tail):
         """A reply joins at most TWO constraints with '; ', but 17.2% of constraints
