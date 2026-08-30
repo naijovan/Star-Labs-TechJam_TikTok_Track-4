@@ -119,7 +119,7 @@ class Agent:
             ptoks=set(terms(" ".join(map(str,profile.get("preference_tags") or []))+" "+str(profile.get("summary") or "")))
             self.S[session_id]=dict(clues=[], free=[], cat=None, cat_sure=False, dead=set(), seen=set(),
                                     is_override=False, override_fired=False, superseded=[], last=[],
-                                    no_more=False, ptoks=ptoks, said_last=None)
+                                    no_more=False, ptoks=ptoks, said_last=None, thanked=False)
         except Exception:
             pass
 
@@ -407,12 +407,33 @@ class Agent:
         return [here[r] for r in sorted(here)]
 
     @staticmethod
+    def _thing(cat):
+        """The category as a person would say it.
+
+        `coarse_category` glues the last two path segments together, which often
+        repeats a word ("Tees & Blouses Blouses & Button-Down Shirts"). Speaking
+        that back verbatim sounds like a machine reading an index, so keep the
+        most specific tail and drop a dangling connector.
+        """
+        if not cat: return "options"
+        w = cat.split()
+        if len(w) > 3: w = w[-3:]
+        while w and w[0] in ("&", "and", "-"): w = w[1:]
+        return " ".join(w) if w else "options"
+
+    @staticmethod
     def _phrase(clue, limit=48):
         """A clue rendered for speech: trimmed, de-keyed, lower-cased if shouty."""
         s = re.sub(r"\s+", " ", str(clue)).strip().rstrip(".")
         if ": " in s and len(s.split(": ", 1)[0]) <= 24:      # "color: blue" -> "blue"
             s = s.split(": ", 1)[1]
-        if len(s) > limit: s = s[:limit].rsplit(" ", 1)[0] + "…"
+        if len(s) > limit:
+            s = s[:limit].rsplit(" ", 1)[0]
+            # don't end on a dangling preposition/conjunction ("...panels at")
+            while s.split() and s.split()[-1].lower() in (
+                    "at","in","on","of","for","with","and","or","to","the","a","an","by","from"):
+                s = s.rsplit(" ", 1)[0]
+            s += "…"
         return s.lower() if s.isupper() else s
 
     def _compose(self, st, n_cand, gated, drained, new_clues, turn):
@@ -432,7 +453,7 @@ class Agent:
         accumulation visible — the agent proves it heard "100% Polyester" rather
         than repeating a generic prompt while the pool quietly shrinks.
         """
-        thing = st.get("cat") or "options"
+        thing = self._thing(st.get("cat"))
         known = len(dict.fromkeys(st.get("clues") or []))
         # Echo a clue the shopper has not already given us: the simulator can
         # re-disclose the same string, and parroting it back looks inattentive.
@@ -440,21 +461,32 @@ class Agent:
         fresh = [c for c in new_clues if c not in prior] or list(new_clues)
         heard = self._phrase(fresh[-1]) if fresh else None
 
-        if gated:
+        if drained:
+            # The shopper has told us they have nothing left to add. Thank them once
+            # and stop asking; another question would only repeat a dead end. Later
+            # turns are honest about what is actually happening — the ranking is
+            # unchanged and the agent is working further down the same list.
+            if not st.get("thanked"):
+                st["thanked"] = True
+                opts = [f"Thanks — that's everything I need. Here are the {thing} that best match.",
+                        f"Thank you, that's plenty to go on. These are the closest {thing} I have."]
+            else:
+                opts = [f"No problem — here are more {thing} from what you've already told me.",
+                        f"Let me widen it a little: further {thing} matching the same details.",
+                        f"Continuing down the list — more {thing} on the same requirements.",
+                        f"Here's another set, still based on everything you've shared."]
+        elif gated:
             # An override session cannot convert yet, so these turns are spent
             # listening. Reflect what arrived rather than stalling identically.
             if heard:
                 opts = [f"Got it — {heard}. Anything else before I put a list together?",
-                        f"Noted: {heard}. What else should I weigh for these {thing}?",
-                        f"That helps — {heard}. Any other detail worth matching on?"]
+                        f"Noted, {heard}. What else should I weigh for these {thing}?",
+                        f"That helps — {heard}. Any other detail worth matching on?",
+                        f"{heard.capitalize()} — understood. What else is on your list?"]
             else:
                 opts = [f"Still listening before I narrow the {thing} down — what else matters?",
                         f"Tell me anything else about the {thing} you have in mind.",
-                        f"Before I recommend, is there another detail I should know?"]
-        elif drained:
-            opts = [f"That's everything I needed. These are the {thing} that fit what you've told me.",
-                    f"No more questions from me — here are the closest {thing} on what I know.",
-                    f"Working with everything you've given me; say the word to widen the search."]
+                        f"Before I recommend anything, is there another detail I should know?"]
         elif known == 0:
             opts = [f"Here's a starting point for {thing}. What matters most — material, colour, fit, or the occasion?",
                     f"To narrow these {thing} down, tell me one thing that matters — fabric, colour, or how you'll use them.",
@@ -465,9 +497,10 @@ class Agent:
                     f"{lead}That leaves {n_cand} candidates — what would eliminate the majority?",
                     f"{lead}Still {n_cand} to choose from. Material, colour, or use case?"]
         elif n_cand and n_cand <= C.CONFIDENT_AT:
-            opts = ["I think these are it. If none is right, one more detail and I'll correct course.",
-                    f"Down to {n_cand}. Say if I've missed the mark and I'll adjust.",
-                    "This looks like your shortlist — anything still off?"]
+            lead = f"{heard.capitalize()} — that pins it down. " if heard else ""
+            opts = [f"{lead}I think these are it. If none is right, one more detail and I'll correct course.",
+                    f"{lead}Down to {n_cand}. Say if I've missed the mark and I'll adjust.",
+                    f"{lead}This looks like your shortlist — anything still off?"]
         else:
             plural = "" if known == 1 else "s"
             lead = f"{heard.capitalize()} noted. " if heard else ""
@@ -496,19 +529,31 @@ class Agent:
             gated = st["is_override"] and not st["override_fired"]
             # An override session cannot score before the mind-change lands, so
             # anything shown now is untested and must not be recorded as seen.
-            recs=[] if gated else self._schedule(ranked, st, turn, top_k)
+            recs=self._schedule(ranked, st, turn, top_k)
+            if gated:
+                # These turns cannot convert, so nothing here is a proven negative:
+                # show the current best guesses but do NOT record them as seen, or
+                # they would be excluded on the turns that can actually win.
+                recs = recs[:top_k] if C.SHOW_WHILE_GATED else []
             if C.NOEVID_PAGE >= 0 and not st["clues"] and not st["free"]:
                 # Evidence-free turn (browsing/boundary opening): deep speculative
                 # cards can only hit at a bad rank and lock it. (Marcus, switch B)
                 recs=recs[:C.NOEVID_PAGE]
-            st["seen"].update(recs); st["last"]=recs
+            # Only turns that COULD have converted prove a candidate wrong. Cards
+            # shown while the override gate is shut were never checked against the
+            # target, so recording them would blacklist the answer itself.
+            if not gated: st["seen"].update(recs)
+            st["last"]=recs
         except Exception as e:
             err=repr(e)
             recs=st.get("last") or []
         # An exhausted attribute is never re-asked (Marcus's distinction: the
         # BOUNDARY refusal does NOT consume it, the drained-pool reply does).
         drained = C.ASK_ATTRIBUTE in st.get("dead",()) or st.get("no_more", False)
-        ask=C.ASK_ATTRIBUTE if C.ASK_ATTRIBUTE not in st.get("dead",()) else "feature"
+        if drained and C.STOP_ASKING_WHEN_DRAINED:
+            ask=None            # nothing left to learn; another question is noise
+        else:
+            ask=C.ASK_ATTRIBUTE if C.ASK_ATTRIBUTE not in st.get("dead",()) else "feature"
         try:
             new_cl=st["clues"][n_before:] if len(st["clues"])>=n_before else []
             msg=self._compose(st, nc, bool(gated), drained, new_cl, turn)

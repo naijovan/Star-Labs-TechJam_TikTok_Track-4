@@ -1,0 +1,214 @@
+{
+  "session_id": "public_0144",
+  "scenario_type": "intent_override",
+  "difficulty": "hard",
+  "why_this_session": "intent_override, 5 turns — the override gate, clue accumulation, the mind-change, seen-set paging, and pool exhaustion",
+  "user_profile": {
+    "average_prior_rating": 2.0,
+    "preference_tags": [
+      "comfort",
+      "material"
+    ],
+    "purchase_frequency": "3-4 prior purchases",
+    "rating_style": "critical",
+    "summary": "Prior purchases emphasize comfort, material; ratings are critical."
+  },
+  "hidden_target": {
+    "parent_asin": "B08LMMDYV7",
+    "title": "URBAN REPUBLIC Women's Winter Jacket - Heavyweight Water Resistant Expedition Faux-Fur Lined Parka Jacket",
+    "note": "Never visible to the agent; shown only to make the trace readable."
+  },
+  "outcome": {
+    "hit": true,
+    "hit_turn": 5,
+    "rank_at_hit": 1,
+    "reciprocal_rank": 1.0
+  },
+  "turns": [
+    {
+      "turn": 1,
+      "customer_said": "I'm looking for Jackets & Vests Down Jackets & Parkas. Zipper closure",
+      "agent_understood": {
+        "new_clues_this_turn": [
+          "Zipper closure"
+        ],
+        "category": "Jackets & Vests Down Jackets & Parkas",
+        "category_certain": true,
+        "attributes_exhausted": []
+      },
+      "agent_retrieval": {
+        "route": "weak",
+        "candidates_remaining": 54,
+        "override_gate_closed": true,
+        "note": "while the gate is closed a hit cannot be scored, so these cards are shown but NOT recorded as seen"
+      },
+      "agent_replied": {
+        "message": "Got it — Zipper closure. Anything else before I put a list together?",
+        "ask_attribute": "other",
+        "recommendations": [
+          "B07VVWPQ4Y",
+          "B07GB6H1ZW",
+          "B09JX1Q6RY",
+          "B08JXKM9GN",
+          "B0B87BPPH5",
+          "B00L287GQU",
+          "B01LYCJSER",
+          "B09L5L9463",
+          "B07BR2J71F",
+          "B0BCK59834"
+        ],
+        "cards_shown": 10
+      },
+      "target_in_this_list": false,
+      "target_rank_this_turn": null
+    },
+    {
+      "turn": 2,
+      "customer_said": "For that, what matters is: polyester; 100% Polyester.",
+      "agent_understood": {
+        "new_clues_this_turn": [
+          "polyester",
+          "100% Polyester"
+        ],
+        "category": "Jackets & Vests Down Jackets & Parkas",
+        "category_certain": true,
+        "attributes_exhausted": []
+      },
+      "agent_retrieval": {
+        "route": "weak",
+        "candidates_remaining": 10,
+        "override_gate_closed": true,
+        "note": "while the gate is closed a hit cannot be scored, so these cards are shown but NOT recorded as seen"
+      },
+      "agent_replied": {
+        "message": "Got it — 100% Polyester. Anything else before I put a list together?",
+        "ask_attribute": "other",
+        "recommendations": [
+          "B081BHJZWZ",
+          "B09D112TGF",
+          "B072LW2R4F",
+          "B08TTDX89T",
+          "B07Y8YH7GN",
+          "B01N1HSW0Q",
+          "B0052BABM4",
+          "B07R9Y26PY",
+          "B0BHC7CKY6",
+          "B013WL5U2G"
+        ],
+        "cards_shown": 10
+      },
+      "target_in_this_list": false,
+      "target_rank_this_turn": null
+    },
+    {
+      "turn": 3,
+      "customer_said": "For that, what matters is: Imported; Zipper closure.",
+      "agent_understood": {
+        "new_clues_this_turn": [
+          "Imported",
+          "Zipper closure"
+        ],
+        "category": "Jackets & Vests Down Jackets & Parkas",
+        "category_certain": true,
+        "attributes_exhausted": []
+      },
+      "agent_retrieval": {
+        "route": "weak",
+        "candidates_remaining": 9,
+        "override_gate_closed": true,
+        "note": "while the gate is closed a hit cannot be scored, so these cards are shown but NOT recorded as seen"
+      },
+      "agent_replied": {
+        "message": "Got it — Imported. Anything else before I put a list together?",
+        "ask_attribute": "other",
+        "recommendations": [
+          "B09LRJ6NQX",
+          "B01GHS9PUE",
+          "B09GL52KHY",
+          "B09L5L9463",
+          "B0B87BPPH5",
+          "B01LOS71XK",
+          "B013EDSRD6",
+          "B0BHC7CKY6",
+          "B010OR70F6",
+          "B013WL5U2G"
+        ],
+        "cards_shown": 10
+      },
+      "target_in_this_list": false,
+      "target_rank_this_turn": null
+    },
+    {
+      "turn": 4,
+      "customer_said": "Actually, ignore my earlier preference. What I need is: polyester.",
+      "agent_understood": {
+        "new_clues_this_turn": [
+          "polyester"
+        ],
+        "category": "Jackets & Vests Down Jackets & Parkas",
+        "category_certain": true,
+        "attributes_exhausted": []
+      },
+      "agent_retrieval": {
+        "route": "weak",
+        "candidates_remaining": 9,
+        "override_gate_closed": false
+      },
+      "agent_replied": {
+        "message": "Polyester noted. Narrowed to 9 on 4 things you've told me. What else matters?",
+        "ask_attribute": "other",
+        "recommendations": [
+          "B09LRJ6NQX",
+          "B09D112TGF",
+          "B08SS3Y79W",
+          "B00LEOX31O",
+          "B072LW2R4F",
+          "B08HHB8DZJ",
+          "B07Y8YH7GN",
+          "B07MD54RM5",
+          "B0052BABM4",
+          "B010OR70F6"
+        ],
+        "cards_shown": 10
+      },
+      "target_in_this_list": false,
+      "target_rank_this_turn": null
+    },
+    {
+      "turn": 5,
+      "customer_said": "I don't have an additional preference for other.",
+      "agent_understood": {
+        "new_clues_this_turn": [],
+        "category": "Jackets & Vests Down Jackets & Parkas",
+        "category_certain": true,
+        "attributes_exhausted": [
+          "other"
+        ]
+      },
+      "agent_retrieval": {
+        "route": "weak",
+        "candidates_remaining": 9,
+        "override_gate_closed": false
+      },
+      "agent_replied": {
+        "message": "Thanks — that's everything I need. Here are the Jackets & Parkas that best match.",
+        "ask_attribute": null,
+        "recommendations": [
+          "B08LMMDYV7",
+          "B01GHS9PUE",
+          "B081BHJZWZ",
+          "B08TTDX89T",
+          "B013EDSRD6",
+          "B013WL5U2G",
+          "B07RS44M91",
+          "B00DDFK0DQ",
+          "B076TTCM7S",
+          "B07R9Y26PY"
+        ],
+        "cards_shown": 10
+      },
+      "target_in_this_list": true,
+      "target_rank_this_turn": 1
+    }
+  ]
+}

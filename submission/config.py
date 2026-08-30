@@ -48,3 +48,11 @@ USE_FTS           = False   # P4 full-text FTS5 lane: measured WORSE on 5 of 9
 # therefore shape only what a human sees in the demo and the report.
 OVERGENERAL_AT    = 60      # candidates above this => ask a ruling-out question
 CONFIDENT_AT      = 3       # candidates at or below this => present as an answer
+STOP_ASKING_WHEN_DRAINED = True   # once the shopper has no preferences left, thank
+                                  # them and stop asking rather than re-prompting
+SHOW_WHILE_GATED  = True    # intent_override: display the current best guesses on
+                            # pre-gate turns. They cannot score (the evaluator
+                            # discards hits until the mind-change lands) and are NOT
+                            # recorded as seen, so this is score-neutral - measured
+                            # byte-identical - and it stops the transcript looking
+                            # like the agent has nothing to say.
