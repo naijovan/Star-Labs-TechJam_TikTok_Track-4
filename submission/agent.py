@@ -491,6 +491,16 @@ class Agent:
                     for i,a in enumerate(f[:200]):      rr[a]+=1/(60+i)
                     ranked=[a for a,_ in sorted(rr.items(), key=lambda kv:(-kv[1],-self.pop[kv[0]], kv[0]))]
             if exact:
+                if C.TRUST_BM25_WHEN_UNRESOLVED and clues and gexact is None:
+                    # No clue resolved against the exact index, so `exact` was
+                    # never narrowed -- it still equals the base pool and is
+                    # not evidence. Do not let it overwrite the BM25 ordering;
+                    # append the rest of the pool after it, popularity-sorted,
+                    # so the floor (every in-pool candidate stays reachable)
+                    # is preserved.
+                    rest=sorted((a for a in exact if a not in set(ranked)),
+                                key=lambda a:(-self.pop[a],a))
+                    return ranked+rest, len(ranked), "bm25_trust"
                 ranked=sorted(exact,key=lambda a:(-self.pop[a],a))+[a for a in ranked if a not in exact]
             return ranked, (len(exact) if exact else len(ranked)), ("weak" if weak else "bm25")
         if self.fts and qtext.strip():                             # P4: clue-vocab miss

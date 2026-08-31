@@ -100,3 +100,7 @@ CANONICALIZE     = True    # stdlib query-rewriting: colloquial color/material w
                            # mapped onto the evaluator's vocabulary, consulted only
                            # for clues that resolved nowhere (clean input untouched
                            # by construction).
+TRUST_BM25_WHEN_UNRESOLVED = True
+# If clues exist but none resolve in the exact index, the exact set still
+# equals the untouched base pool and should not override BM25 ordering.
+# Remaining candidates are appended afterward so the retrieval floor is kept.
