@@ -1,6 +1,6 @@
 import json, collections, random, math
 from evaluator.local_evaluator import intent_card, coarse_category
-from starter.agent import _terms
+from starter._original_bm25_agent import _terms
 
 prods,cards,cats={},{},{}
 for line in open('data/catalog.jsonl',encoding='utf-8'):

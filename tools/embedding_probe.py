@@ -1,7 +1,7 @@
 import json, collections, random, time, sys
 sys.path.insert(0,'.')
 from evaluator.local_evaluator import intent_card, coarse_category
-from starter.agent import _terms
+from starter._original_bm25_agent import _terms
 import numpy as np
 from sentence_transformers import SentenceTransformer
 

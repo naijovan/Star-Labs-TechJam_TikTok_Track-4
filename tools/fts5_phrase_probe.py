@@ -1,6 +1,6 @@
 import json, sqlite3, collections
 from evaluator.local_evaluator import evaluate, load_jsonl, catalog_index, coarse_category, intent_card
-from starter.agent import _text
+from starter._original_bm25_agent import _text
 FILLER=("Those options are not quite right yet","I don't have an additional preference","I don't have a preference for")
 def esc(s): return '"' + s.replace('"','""') + '"'
 

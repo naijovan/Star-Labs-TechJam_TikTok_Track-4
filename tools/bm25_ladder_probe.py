@@ -2,7 +2,7 @@ import json, re, sqlite3, collections
 from pathlib import Path
 from evaluator.local_evaluator import (evaluate, load_jsonl, catalog_index,
                                        coarse_category)
-from starter.agent import _terms, _text
+from starter._original_bm25_agent import _terms, _text
 
 FILLER = ("Those options are not quite right yet",
           "I don't have an additional preference",
