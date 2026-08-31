@@ -1,0 +1,141 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1520 500" font-family="-apple-system,'Segoe UI',system-ui,sans-serif" role="img" aria-label="The agent pipeline, left to right: build the indexes once, then each turn parse, remember, narrow, rank, schedule, ask, reply - ending at TechnicalScore 0.9800">
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,1 L9,5 L0,9 z" fill="#6B7779"/></marker></defs>
+<rect x="0" y="0" width="1520" height="500" rx="10" fill="#F4F6F4"/>
+
+<text x="16" y="18" font-size="13" font-weight="600" letter-spacing="1.4" fill="#0F5D56">ONCE — OFFLINE · 3.5 s</text>
+<text x="208" y="18" font-size="13" font-weight="600" letter-spacing="1.4" fill="#6B7779">EVERY TURN — REPEATS UP TO 10x · 0.06 ms MEDIAN · THE REPLY LOOPS BACK TO PARSE</text>
+
+<!-- 0 BUILD -->
+<rect x="14" y="28" width="172" height="370" rx="8" fill="#E2EFEC" stroke="#0F5D56" stroke-width="1.6"/>
+<text x="28" y="52" font-size="12" font-weight="600" fill="#0F5D56">0 · BUILD</text>
+<text x="28" y="76" font-size="20" font-weight="700" fill="#14191A">Index the</text>
+<text x="28" y="98" font-size="20" font-weight="700" fill="#14191A">catalog</text>
+<text x="28" y="128" font-size="14" fill="#3C4749">Replay intent_card()</text>
+<text x="28" y="146" font-size="14" fill="#3C4749">over 50,000 products</text>
+<text x="28" y="172" font-size="14" fill="#3C4749">5 inverted indexes:</text>
+<text x="28" y="190" font-size="14" fill="#3C4749">clues · buckets · BM25</text>
+<text x="28" y="208" font-size="14" fill="#3C4749">popularity · profile</text>
+<text x="28" y="234" font-size="14" fill="#3C4749">160-map canonicalizer</text>
+<text x="28" y="260" font-size="14" fill="#9C5308">dense lane: opt-in via</text>
+<text x="28" y="278" font-size="14" fill="#9C5308">TECHJAM_DENSE=1</text>
+<line x1="28" y1="360" x2="172" y2="360" stroke="#0F5D56" stroke-width="1" stroke-dasharray="3,3"/>
+<text x="28" y="382" font-size="13.5" font-family="'SF Mono',Consolas,monospace" fill="#0F5D56">341 MiB · stdlib only</text>
+<line x1="186" y1="212" x2="200" y2="212" stroke="#6B7779" stroke-width="2" marker-end="url(#a)"/>
+
+<!-- 1 PARSE -->
+<rect x="208" y="28" width="152" height="370" rx="8" fill="#FFFFFF" stroke="#D7DDDA" stroke-width="1.4"/>
+<text x="222" y="52" font-size="12" font-weight="600" fill="#0F5D56">1 · PARSE</text>
+<text x="222" y="76" font-size="20" font-weight="700" fill="#14191A">Route the</text>
+<text x="222" y="98" font-size="20" font-weight="700" fill="#14191A">intent</text>
+<text x="222" y="128" font-size="14" fill="#3C4749">8 template shapes:</text>
+<text x="222" y="146" font-size="14" fill="#3C4749">buying · browsing</text>
+<text x="222" y="164" font-size="14" fill="#3C4749">override · boundary</text>
+<text x="222" y="192" font-size="14" fill="#3C4749">fuzzy category fix</text>
+<text x="222" y="210" font-size="14" fill="#3C4749">= a guess, not fact</text>
+<text x="222" y="238" font-size="14" fill="#9C5308">override demotes</text>
+<text x="222" y="256" font-size="14" fill="#9C5308">the category</text>
+<line x1="222" y1="360" x2="346" y2="360" stroke="#D7DDDA" stroke-width="1" stroke-dasharray="3,3"/>
+<text x="222" y="382" font-size="13.5" font-family="'SF Mono',Consolas,monospace" fill="#0F5D56">200/200 routed</text>
+<line x1="360" y1="212" x2="374" y2="212" stroke="#6B7779" stroke-width="2" marker-end="url(#a)"/>
+
+<!-- 2 REMEMBER -->
+<rect x="382" y="28" width="152" height="370" rx="8" fill="#FFFFFF" stroke="#D7DDDA" stroke-width="1.4"/>
+<text x="396" y="52" font-size="12" font-weight="600" fill="#0F5D56">2 · REMEMBER</text>
+<text x="396" y="76" font-size="20" font-weight="700" fill="#14191A">Keep the</text>
+<text x="396" y="98" font-size="20" font-weight="700" fill="#14191A">slots</text>
+<text x="396" y="128" font-size="14" fill="#3C4749">clues accumulate;</text>
+<text x="396" y="146" font-size="14" fill="#3C4749">filler filtered out</text>
+<text x="396" y="174" font-size="14" fill="#3C4749">old slots stay true</text>
+<text x="396" y="192" font-size="14" fill="#3C4749">of the target</text>
+<text x="396" y="220" font-size="14" fill="#9C5308">erase only on</text>
+<text x="396" y="238" font-size="14" fill="#9C5308">catalog-wide proof</text>
+<line x1="396" y1="360" x2="520" y2="360" stroke="#D7DDDA" stroke-width="1" stroke-dasharray="3,3"/>
+<text x="396" y="382" font-size="13.5" font-family="'SF Mono',Consolas,monospace" fill="#0F5D56">+0.181 true switches</text>
+<line x1="534" y1="212" x2="548" y2="212" stroke="#6B7779" stroke-width="2" marker-end="url(#a)"/>
+
+<!-- 3 NARROW -->
+<rect x="556" y="28" width="252" height="370" rx="8" fill="#FFFFFF" stroke="#D7DDDA" stroke-width="1.4"/>
+<text x="570" y="52" font-size="12" font-weight="600" fill="#0F5D56">3 · NARROW</text>
+<text x="570" y="76" font-size="20" font-weight="700" fill="#14191A">Retrieval cascade</text>
+<text x="570" y="96" font-size="12.5" fill="#6B7779">top to bottom — first decisive route wins</text>
+<rect x="570" y="106" width="224" height="30" rx="5" fill="#FAFBFA" stroke="#D7DDDA"/>
+<text x="580" y="126" font-size="14" fill="#3C4749"><tspan font-weight="700" fill="#14191A">R1</tspan>  category bucket</text>
+<rect x="570" y="141" width="224" height="30" rx="5" fill="#FAFBFA" stroke="#D7DDDA"/>
+<text x="580" y="161" font-size="14" fill="#3C4749"><tspan font-weight="700" fill="#14191A">R2</tspan>  exact clue ∩ (91% unique)</text>
+<rect x="570" y="176" width="224" height="30" rx="5" fill="#FAFBFA" stroke="#D7DDDA"/>
+<text x="580" y="196" font-size="14" fill="#3C4749"><tspan font-weight="700" fill="#14191A">R2b</tspan> no-category ∩ <tspan fill="#9C5308" font-size="12">gate: guessed</tspan></text>
+<rect x="570" y="211" width="224" height="46" rx="5" fill="#FAFBFA" stroke="#9C5308"/>
+<text x="580" y="229" font-size="14" fill="#3C4749">unresolved lane <tspan fill="#9C5308" font-size="12">gate: no clue resolves</tspan></text>
+<text x="580" y="248" font-size="13" fill="#6B7779">canonicalize → trust BM25 → dense</text>
+<rect x="570" y="262" width="224" height="30" rx="5" fill="#FAFBFA" stroke="#D7DDDA"/>
+<text x="580" y="282" font-size="14" fill="#3C4749"><tspan font-weight="700" fill="#14191A">R3</tspan>  BM25 keyword</text>
+<rect x="570" y="297" width="224" height="30" rx="5" fill="#FAFBFA" stroke="#D7DDDA"/>
+<text x="580" y="317" font-size="14" fill="#3C4749"><tspan font-weight="700" fill="#14191A">R4</tspan>  widen <tspan fill="#9C5308" font-size="12">gate: guessed</tspan></text>
+<rect x="570" y="332" width="224" height="30" rx="5" fill="#FAFBFA" stroke="#D7DDDA"/>
+<text x="580" y="352" font-size="14" fill="#3C4749"><tspan font-weight="700" fill="#14191A">R5</tspan>  popularity × profile floor</text>
+<text x="570" y="386" font-size="13.5" font-family="'SF Mono',Consolas,monospace" fill="#0F5D56">clue ∩ removed: −0.209</text>
+<line x1="808" y1="212" x2="822" y2="212" stroke="#6B7779" stroke-width="2" marker-end="url(#a)"/>
+
+<!-- 4 RANK -->
+<rect x="830" y="28" width="152" height="370" rx="8" fill="#FFFFFF" stroke="#D7DDDA" stroke-width="1.4"/>
+<text x="844" y="52" font-size="12" font-weight="600" fill="#0F5D56">4 · RANK</text>
+<text x="844" y="76" font-size="20" font-weight="700" fill="#14191A">Local</text>
+<text x="844" y="98" font-size="20" font-weight="700" fill="#14191A">scoring</text>
+<text x="844" y="128" font-size="14" fill="#3C4749">log1p(reviews)</text>
+<text x="844" y="146" font-size="14" fill="#3C4749">+ 0.35 × profile</text>
+<text x="844" y="164" font-size="14" fill="#3C4749">affinity</text>
+<text x="844" y="192" font-size="14" fill="#3C4749">parent_asin</text>
+<text x="844" y="210" font-size="14" fill="#3C4749">tie-break =</text>
+<text x="844" y="228" font-size="14" fill="#3C4749">deterministic</text>
+<line x1="844" y1="360" x2="968" y2="360" stroke="#D7DDDA" stroke-width="1" stroke-dasharray="3,3"/>
+<text x="844" y="382" font-size="13.5" font-family="'SF Mono',Consolas,monospace" fill="#0F5D56">beat 9 ML rankers</text>
+<line x1="982" y1="212" x2="996" y2="212" stroke="#6B7779" stroke-width="2" marker-end="url(#a)"/>
+
+<!-- 5 SCHEDULE -->
+<rect x="1004" y="28" width="152" height="370" rx="8" fill="#FFFFFF" stroke="#D7DDDA" stroke-width="1.4"/>
+<text x="1018" y="52" font-size="12" font-weight="600" fill="#0F5D56">5 · SCHEDULE</text>
+<text x="1018" y="76" font-size="20" font-weight="700" fill="#14191A">Slot-value</text>
+<text x="1018" y="98" font-size="20" font-weight="700" fill="#14191A">paging</text>
+<text x="1018" y="128" font-size="14" fill="#3C4749">hit(t,r) is worth</text>
+<text x="1018" y="146" font-size="14" fill="#3C4749">.50+.30/r+.02(11−t)</text>
+<text x="1018" y="174" font-size="14" fill="#3C4749">turn 1 + no-evidence</text>
+<text x="1018" y="192" font-size="14" fill="#3C4749">turns show 1 card</text>
+<text x="1018" y="220" font-size="14" fill="#3C4749">pages deeper</text>
+<text x="1018" y="238" font-size="14" fill="#3C4749">each turn</text>
+<line x1="1018" y1="360" x2="1142" y2="360" stroke="#D7DDDA" stroke-width="1" stroke-dasharray="3,3"/>
+<text x="1018" y="382" font-size="13.5" font-family="'SF Mono',Consolas,monospace" fill="#0F5D56">clean MRR → 1.0000</text>
+<line x1="1156" y1="212" x2="1170" y2="212" stroke="#6B7779" stroke-width="2" marker-end="url(#a)"/>
+
+<!-- 6 ASK -->
+<rect x="1178" y="28" width="152" height="370" rx="8" fill="#FFFFFF" stroke="#D7DDDA" stroke-width="1.4"/>
+<text x="1192" y="52" font-size="12" font-weight="600" fill="#0F5D56">6 · ASK</text>
+<text x="1192" y="76" font-size="20" font-weight="700" fill="#14191A">Clarify,</text>
+<text x="1192" y="98" font-size="20" font-weight="700" fill="#14191A">always</text>
+<text x="1192" y="128" font-size="14" fill="#3C4749">ask_attribute</text>
+<text x="1192" y="146" font-size="14" fill="#3C4749">"other" — drains 2</text>
+<text x="1192" y="164" font-size="14" fill="#3C4749">constraints, free</text>
+<text x="1192" y="192" font-size="14" fill="#3C4749">acknowledges, then</text>
+<text x="1192" y="210" font-size="14" fill="#3C4749">thanks + stops</text>
+<text x="1192" y="228" font-size="14" fill="#3C4749">when drained</text>
+<line x1="1192" y1="360" x2="1316" y2="360" stroke="#D7DDDA" stroke-width="1" stroke-dasharray="3,3"/>
+<text x="1192" y="382" font-size="13.5" font-family="'SF Mono',Consolas,monospace" fill="#0F5D56">300 prompts, 0 repeats</text>
+<line x1="1330" y1="212" x2="1344" y2="212" stroke="#6B7779" stroke-width="2" marker-end="url(#a)"/>
+
+<!-- 7 REPLY -->
+<rect x="1352" y="28" width="152" height="370" rx="8" fill="#FFFFFF" stroke="#D7DDDA" stroke-width="1.4"/>
+<text x="1366" y="52" font-size="12" font-weight="600" fill="#0F5D56">7 · REPLY</text>
+<text x="1366" y="76" font-size="20" font-weight="700" fill="#14191A">Fail-safe</text>
+<text x="1366" y="98" font-size="20" font-weight="700" fill="#14191A">out</text>
+<text x="1366" y="128" font-size="14" fill="#3C4749">any fault degrades</text>
+<text x="1366" y="146" font-size="14" fill="#3C4749">to the last good</text>
+<text x="1366" y="164" font-size="14" fill="#3C4749">page — never raises</text>
+<text x="1366" y="192" font-size="14" fill="#3C4749">optional JSONL</text>
+<text x="1366" y="210" font-size="14" fill="#3C4749">trace per turn</text>
+<line x1="1366" y1="360" x2="1490" y2="360" stroke="#D7DDDA" stroke-width="1" stroke-dasharray="3,3"/>
+<text x="1366" y="382" font-size="13.5" font-family="'SF Mono',Consolas,monospace" fill="#0F5D56">10 IDs + 1 question</text>
+
+<!-- score bar -->
+<line x1="1428" y1="398" x2="1428" y2="424" stroke="#0F5D56" stroke-width="2" marker-end="url(#a)"/>
+<rect x="14" y="432" width="1490" height="52" rx="26" fill="#E2EFEC" stroke="#0F5D56" stroke-width="1.8"/>
+<text x="759" y="465" text-anchor="middle" font-size="19" font-weight="600" font-family="'SF Mono',Consolas,monospace" fill="#0F5D56">TechnicalScore 0.9800 · hit@10 1.000 · MRR 1.0000 · MTTC 2.00 · 0 tokens · 200/200 at rank 1</text>
+</svg>
