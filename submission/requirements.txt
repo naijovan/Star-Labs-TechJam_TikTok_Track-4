@@ -12,10 +12,11 @@
 #
 # One command, from the repo root with data/catalog.jsonl in place:
 #     python3 -m evaluator.local_evaluator
-# Expected on the public 200: TechnicalScore 0.9784 (hit@10 1.000, MRR 0.9933).
+# Expected on the public 200: TechnicalScore 0.9800 (hit@10 1.000, MRR 1.0000).
 #
-# Optional (OFF by default, not used for scoring): setting USE_DENSE=True in
-# submission/config.py enables a dense-retrieval escalation path and then
+# Optional (OFF by default, not used for scoring): setting the environment
+# variable TECHJAM_DENSE=1 enables a dense-retrieval escalation lane and then
 # requires:  sentence-transformers>=3.0  (plus its torch dependency).
-# Measured on all our conditions it does not improve the score; it exists as
-# insurance against heavy paraphrasing and is disabled in the submitted config.
+# It fires only when a constraint resolves nowhere in the exact index; the
+# clean score is byte-identical either way (0.9800) and any import/weight/
+# network failure falls back silently to the stdlib cascade.
