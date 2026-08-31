@@ -75,6 +75,43 @@ What each build step does for robustness, in plain terms:
 - **Dense encoder (optional)** — meaning-based matching for heavy rewording;
   off by default so scoring never depends on extra software or a network.
 
+<details>
+<summary><b>Under the hood — the offline build, technically</b></summary>
+
+The build is a single pass over the catalog (3.5 s, ~341 MiB in memory,
+standard library only, nothing persisted — rebuilt at every startup; the
+catalog itself stays read-only). The key decision: instead of indexing raw
+product text, the agent runs the evaluator's own `intent_card()` constructor
+over every product and indexes its *output* — the constraint sentences the
+simulated shopper can actually utter. Agent vocabulary equals shopper
+vocabulary by construction, which is what makes exact matching viable at all.
+
+- **Clue index** — maps each emitted constraint string to the set of products
+  that emit it (~60,000 distinct strings; 91% identify exactly one product).
+  Retrieval intersects these sets, so each remembered preference is one
+  precise filter rather than a bag of keywords.
+- **Category buckets** — `coarse_category()` leaf paths partition the catalog
+  into ~1,100 buckets. Lookup is exact-match first; a token-set Jaccard
+  repair (threshold 0.70) handles damaged category strings and marks the
+  result as a guess rather than knowledge.
+- **BM25 word index** — a classic inverted index over each product's
+  searchable text (k1 = 1.2, b = 0.75), scoring the accumulated conversation
+  when exact matching has nothing to say.
+- **Popularity + profile priors** — `log1p(review_count)` as the base prior,
+  plus a per-product preference-tag token set that powers the profile
+  affinity term (weight 0.35) at the rank stage.
+- **Canonicalizer** — ~160 colloquial-to-catalog word mappings
+  (violet → purple, merino → wool), compiled once and consulted only for
+  constraints that resolve nowhere in the clue index, so clean input is
+  untouched by construction.
+- **Dense encoder (opt-in)** — with `TECHJAM_DENSE=1` and
+  `sentence-transformers` available, bge-small embeddings are built over the
+  emitted constraint sentences (not full descriptions — measured tighter).
+  Any failure — missing package, missing weights, no network — falls back
+  silently to the stdlib-only build.
+
+</details>
+
 **Online — every turn (0.06 ms median):**
 
 ![Per-turn flow: understand, remember, shortlist, order, choose how many to show, ask one question, answer](submission/pipeline_online.svg)
@@ -106,7 +143,7 @@ The theme across all of it: **the expensive or looser step runs only after
 the simple, precise one has provably failed.**
 
 <details>
-<summary><b>Under the hood — the technical version</b></summary>
+<summary><b>Under the hood — the per-turn engine, technically</b></summary>
 
 ### The seven stages, by their real names
 
