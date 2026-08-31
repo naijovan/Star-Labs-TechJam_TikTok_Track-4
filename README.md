@@ -15,6 +15,13 @@ pure-Python retrieval cascade beat every ML variant we benchmarked against it
 (dense retrievers, cross-encoders, a 568M-parameter reranker), so the models
 stayed out and the measurements stayed in the repo.
 
+<!-- Demo video: add the YouTube link here when published -->
+
+**Jump to:** [Results](#results) · [See it work](#see-it-work) ·
+[How it works](#how-it-works) · [Setup](#setup-and-reproduction) ·
+[Robustness](#robustness--measured-not-asserted) · [Limitations](#limitations) ·
+[What's next](#whats-next) · [Team](#team--star-labs)
+
 ## Results
 
 Scored by the organizer's unmodified evaluator over all 200 public sessions:
@@ -215,6 +222,10 @@ mechanism were measured and regressed; the gated forms win or tie everywhere.
    Expected: `technical_score 0.980000` (hit@10 1.000, MRR 1.0000, MTTC 2.00).
    Contract check: `PYTHONPATH=. python3 tools/smoke_test.py submission.agent`
 
+**Built with:** Python 3.10+ standard library only. No frameworks, no APIs,
+no keys. Optional (off by default): `sentence-transformers` + bge-small for
+the `TECHJAM_DENSE=1` lane.
+
 Package details, environment switches, and the feasibility disclosure are in
 [submission/README.md](submission/README.md).
 
@@ -250,6 +261,18 @@ scripts and their results are retained in `tools/`.
   optional dense lane; an open-vocabulary paraphraser would need the latter
   enabled.
 
+## What's next
+
+- **Category re-anchoring on mind-changes** — the one shift axis still below
+  0.7 in our stress suites is a shopper switching to a completely different
+  product; re-deriving the category from the new constraint is the known next
+  lever.
+- **Paraphrase recovery** — a constraint-recovery package that lifts the
+  hardest template-rewrite case from 0.77 to 0.94 exists on a branch, pending
+  one guard against false matches before it merges.
+- **Dense-by-default** — when the runtime guarantees a warm model cache, the
+  resolution-gated vector lane can ship enabled instead of opt-in.
+
 ## Repository layout
 
 | Path | What it is |
@@ -267,3 +290,12 @@ scripts and their results are retained in `tools/`.
 - **Germaine** — [to be filled]
 - **Ben** — [to be filled]
 - **Marcus** — [to be filled]
+
+## Acknowledgments
+
+Catalog and sessions derive from the Amazon Reviews 2023 dataset (Hou et al.,
+*Bridging Language and Items for Retrieval and Recommendation*,
+arXiv:2403.03952), provided by the organizers as a frozen 50k-product kit —
+see [DATA_ATTRIBUTION.md](DATA_ATTRIBUTION.md). The evaluator, spec, and
+public sessions in `evaluator/`, `docs/`, and `data/` are the organizer's,
+unmodified.
