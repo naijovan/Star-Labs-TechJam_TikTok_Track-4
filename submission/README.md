@@ -6,7 +6,13 @@ Entry point: `submission/agent.py` exports `Agent` (also re-exported through
 trace). The scoring path is **pure Python standard library** — no model, no
 network, no API keys, zero tokens.
 
-![The pipeline, left to right: build the indexes once, then each turn parse, remember, narrow, rank, schedule, ask, reply — ending at TechnicalScore 0.9800](pipeline.svg)
+**Offline — built once at startup:**
+
+![Offline build: the catalog feeds an intent_card replay, which builds five in-memory indexes plus an optional dense encoder](pipeline_offline.svg)
+
+**Online — every turn, left to right (the reply loops back to parse):**
+
+![Per-turn flow: parse, remember, narrow through a seven-route cascade, rank, schedule, ask, reply](pipeline_online.svg)
 
 ## Setup (one-time)
 
@@ -65,7 +71,8 @@ submission/agent.py      the Agent (parse -> remember -> narrow -> rank ->
 submission/config.py     all constants, each annotated with its measurement
 submission/tracelog.py   never-raises JSONL tracer (off unless TRACE_PATH set)
 submission/requirements.txt
-submission/pipeline.svg  the pipeline diagram embedded above
+submission/pipeline_offline.svg  \ the two diagrams
+submission/pipeline_online.svg   / embedded above
 ```
 
 Method, measurements, and limitations are covered in the project report and
