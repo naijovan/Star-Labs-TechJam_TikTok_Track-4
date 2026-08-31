@@ -1,112 +1,108 @@
-# TechJam Conversational E-Commerce Search Challenge
+# Star Labs — TikTok TechJam 2026 · Track 4: Shopping Copilot
 
-Build an AI shopping agent that asks useful follow-up questions and recommends the customer's hidden target product within at most 10 turns.
+A conversational shopping agent that finds one hidden product among 50,000 in
+about two turns. On the 200 public sessions, scored by the organizer's
+unmodified evaluator:
 
-## What You Receive
+| TechnicalScore | hit@10 | MRR | MTTC | tokens | dependencies |
+|---|---|---|---|---|---|
+| **0.980000** | 1.000 | **1.0000** | 2.00 | 0 | none — Python stdlib |
 
-- A frozen catalog of 50,000 products from the `Clothing_Shoes_and_Jewelry` category of Amazon Reviews 2023.
-- 200 labeled public sessions for local development.
-- A weak BM25 starter agent and deterministic local evaluator.
-- The Agent API contract and scoring rules.
+Every one of the 200 sessions converts at **rank 1**. The baseline starter
+agent scores 0.10671. The agent is byte-deterministic: identical output for
+any `PYTHONHASHSEED`, guaranteed by a full ordering on every sort.
 
-The organizer keeps 800 additional sessions private for final evaluation.
+## How it works
 
-## Task
+**Offline — built once at startup (3.5 s):**
 
-For each session, your agent receives an anonymized preference profile and a short customer message. Raw user IDs, review text, timestamps, and purchase history are never disclosed. On every turn the agent may:
+![Offline build: the catalog feeds an intent_card replay, which builds five in-memory indexes plus an optional dense encoder](submission/pipeline_offline.svg)
 
-- ask a natural clarification question in `message` and identify one requested field in `ask_attribute`;
-- return a ranked list of up to 10 catalog `parent_asin` values;
-- do both in the same response.
+The build replays the evaluator's own `intent_card()` over the catalog, so the
+indexes hold what each product *would say in a conversation*, not just what
+its description contains. That one decision is why exact constraint
+intersection resolves most sessions in two turns.
 
-The session ends when the target product appears in the scored Top 10 or after turn 10. Sessions cover Buying, Browsing, Intent Override, and Boundary behavior.
+**Online — every turn (0.06 ms median):**
 
-## Download the Catalog
+![Per-turn flow: parse, remember, narrow through a seven-route cascade, rank, schedule, ask, reply](submission/pipeline_online.svg)
 
-Download `catalog.jsonl.gz` from the GitHub Release attached to this repository, then run:
+One discipline organizes the whole cascade: **escalate only on a failure
+signature.** A category that had to be fuzzily repaired re-arms the wide
+routes; a constraint that resolves nowhere in the exact index opens the
+canonicalizer → BM25-trust → dense lane; an intent override demotes the
+pre-override category to a guess and erases a remembered slot only when the
+catalog proves no product satisfies both values. Nothing expensive runs while
+the cheap path is winning.
 
-```bash
-gzip -dk catalog.jsonl.gz
-mv catalog.jsonl data/catalog.jsonl
-```
+## Setup and reproduction
 
-Verify the downloaded file using the published `SHA256SUMS` file.
+1. Python **>= 3.10** (verified on CPython 3.11.12). No packages to install.
+2. Download `catalog.jsonl.gz` from the organizer's participant-kit release,
+   verify it against the release `SHA256SUMS`, then:
+   ```bash
+   gzip -dk catalog.jsonl.gz && mv catalog.jsonl data/catalog.jsonl
+   ```
+3. Run the official harness:
+   ```bash
+   python3 -m evaluator.local_evaluator
+   ```
+   Expected: `technical_score 0.980000` (hit@10 1.000, MRR 1.0000, MTTC 2.00).
+   Contract check: `PYTHONPATH=. python3 tools/smoke_test.py submission.agent`
 
-## Run the Starter
+Package details, environment switches, and the feasibility disclosure are in
+[submission/README.md](submission/README.md).
 
-Python 3.10 or later is recommended. The starter uses only the Python standard library.
+## Robustness — measured, not asserted
 
-```bash
-python3 -m evaluator.local_evaluator
-```
+The private set uses unseen users and targets, so every mechanism was adopted
+only after measurement on shifted inputs. The evidence lives in `tools/`:
 
-Edit `starter/agent.py` to implement your system. Do not edit the evaluator or public labels when reporting your local score.
-The command writes per-session results and aggregate metrics to `results.json`.
+- `verify_agent.py` — the official 200 under six corruption conditions
+  (word drops up to 50%, category damage, template rephrasings).
+- `stress_suite.py` — 500 sessions across four shift axes (paraphrase, false
+  drift, cold targets, foreign-generator cards).
+- `stress10k.py` — 10,000 sessions across five axes the agent was never built
+  for, with transform vocabularies disjoint from the agent's own tables.
+- `turn1_suite.py` — 1,000 provable turn-1 singletons: the agent converts
+  1000/1000 at rank 1 on turn 1.
 
-The included weak BM25 starter scores Hit Rate@10 `0.125`, MRR `0.068034`, and
-MTTC `9.81` on the released public set. See `docs/baseline_results.json`.
+Components the track brief names were built and measured either way: dense
+retrieval ships resolution-gated behind `TECHJAM_DENSE=1` (byte-identical
+clean, +0.036 under paraphrase); cross-encoder reranking and time-based slot
+decay were implemented, measured, and rejected on the numbers — the probe
+scripts and their results are retained in `tools/`.
 
-## Agent Interface
+## Limitations
 
-```python
-class Agent:
-    def reset(self, session_id: str, user_profile: dict) -> None:
-        ...
+- The turn-1 parser keys on the evaluator's message templates. Heavy rewrites
+  of *both* templates degrade the score to 0.77 (single-template rewrites cost
+  about 0.03–0.05); the cascade's BM25 fallback bounds the damage.
+- The popularity prior assumes targets are real purchases. On uniformly
+  resampled cold targets the score is 0.946 — the elimination cascade, not
+  popularity, carries the result.
+- Colloquial vocabulary is handled by a fixed 160-entry canonicalizer plus the
+  optional dense lane; an open-vocabulary paraphraser would need the latter
+  enabled.
 
-    def respond(self, session_id: str, user_message: str, turn: int, top_k: int) -> dict:
-        return {
-            "message": "Do you have a material preference?",
-            "ask_attribute": "material",
-            "recommendations": [
-                {"parent_asin": "B000..."},
-                {"parent_asin": "B001..."}
-            ],
-            "usage": {"prompt_tokens": 120, "completion_tokens": 30}
-        }
-```
+## Repository layout
 
-`ask_attribute` is one of `category`, `material`, `color`, `size`, `style`, `brand`, `budget`, `feature`, `use_case`, `other`, or `null`. See `docs/agent_api_contract.json`.
+| Path | What it is |
+|---|---|
+| `submission/` | The agent package: `agent.py`, `config.py`, `tracelog.py`, README, diagrams |
+| `evaluator/`, `docs/`, `data/` | The organizer's harness, spec, and public sessions (unmodified) |
+| `starter/` | Harness entry shim → `submission.agent`; original BM25 baseline preserved |
+| `tools/` | Verification harnesses, stress suites, and the measurement probes behind every design decision |
+| `tests/` | Unit tests for the evaluator contract and suite generation |
+| `traces/` | A full demonstrated session (intent override, hit at rank 1) |
 
-## Technical Metrics
+## Team — Star Labs
 
-- **Hit Rate@10:** fraction of sessions that find the target within 10 turns.
-- **MRR:** mean reciprocal rank of the target; a miss contributes zero.
-- **MTTC:** mean first-hit turn; a miss is assigned turn 11.
-- **Reported token usage:** prompt and completion tokens returned by the team's model client.
-
-```text
-TechnicalScore = 0.50 × HitRate@10 + 0.30 × MRR + 0.20 × Efficiency
-Efficiency = clip((11 - MTTC) / 10, 0, 1)
-```
-
-`TechnicalScore` is an objective input to the `Technical Execution` assessment. It is not a separate judging criterion and does not represent the entire `Technical Execution` score.
-
-Only exact `parent_asin` equality produces a hit. Core metrics are also reported by scenario.
-
-## Model Choice and Cost
-
-Teams may use any legally accessible LLM API or local model. Teams manage their own credentials and must never commit API keys. Model choice, estimated cost, token usage, and latency must be disclosed. Token usage is a feasibility metric, not part of the core technical score. The organizer does not provide or reimburse model API credits; teams are responsible for any costs incurred through optional external services.
-
-## Files
-
-```text
-data/public_set.jsonl             200 labeled development sessions
-docs/competition_specification.md participant rules and evaluation protocol
-docs/agent_api_contract.json      machine-readable Agent contract
-docs/evaluation_config.json       scoring configuration
-docs/baseline_results.json        reproducible weak-starter reference score
-starter/agent.py                  editable weak starter
-evaluator/local_evaluator.py      public-set simulator and scorer
-```
-
-## Judging and Submission Policy
-
-- Participant submission requirements: `docs/submission_rules.md`
-- Organizer-only final judging controls: `organizer/JUDGING_RUNBOOK.md`
-- Organizer private release checklist: `organizer/private_release_checklist.md`
-- Judging day operations SOP: `organizer/JUDGING_DAY_SOP.md`
-
-## Data Source
-
-The catalog and sessions are derived from Amazon Reviews 2023 by McAuley Lab, UCSD. See `DATA_ATTRIBUTION.md` before using or redistributing the data.
-Sessions are sampled deterministically from the official Clothing 5-core leave-last-out split and joined to the frozen catalog.
+- **Jovan** — architecture and the retrieval cascade; intent-override handling
+  (category demotion + catalog-wide contradiction proof); canonicalizer; the
+  10k and turn-1 stress suites; integration and verification.
+- **Germaine** — slot-value scheduler; category-free intersection; BM25-trust
+  on unresolved clues; turn-1 one-card cap; the 8.5k-session hardening suite.
+- **Ben** — paraphrase-recovery research (constraint recovery, denormalizer,
+  category word-count matching) and the unit-test suite.
+- **Marcus** — evidence-free page discipline and candidate-pool analysis.
