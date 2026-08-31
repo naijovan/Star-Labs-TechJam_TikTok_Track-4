@@ -263,11 +263,7 @@ scripts and their results are retained in `tools/`.
 
 ## Team — Star Labs
 
-- **Jovan** — architecture and the retrieval cascade; intent-override handling
-  (category demotion + catalog-wide contradiction proof); canonicalizer; the
-  10k and turn-1 stress suites; integration and verification.
-- **Germaine** — slot-value scheduler; category-free intersection; BM25-trust
-  on unresolved clues; turn-1 one-card cap; the 8.5k-session hardening suite.
-- **Ben** — paraphrase-recovery research (constraint recovery, denormalizer,
-  category word-count matching) and the unit-test suite.
-- **Marcus** — evidence-free page discipline and candidate-pool analysis.
+- **Jovan** — [to be filled]
+- **Germaine** — [to be filled]
+- **Ben** — [to be filled]
+- **Marcus** — [to be filled]
