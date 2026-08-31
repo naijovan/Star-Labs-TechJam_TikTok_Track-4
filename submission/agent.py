@@ -269,6 +269,15 @@ class Agent:
             return
         if "Actually, ignore my earlier preference" in msg:
             st["override_fired"]=True
+            if C.OVERRIDE_DEMOTES_CAT:
+                # The category was learned from PRE-override context, which the
+                # shopper has just disavowed. It may still be right (the shipped
+                # simulator's overrides never change product), but it is no longer
+                # KNOWLEDGE - it is a guess, so the wide-search and category-free
+                # escapes must be allowed to fire. (10k suite, axis F: with the
+                # category kept "certain", a true product switch strands the agent
+                # in the old bucket for the whole session - hit@10 0.49.)
+                st["cat_sure"]=False
             pre=list(st["clues"])
             v=msg.split("What I need is:",1)[-1].strip().rstrip(".")
             if v: st["clues"].append(v)
@@ -333,7 +342,11 @@ class Agent:
         """
         new_cl=[c for c in st["clues"] if c not in pre]
         if not new_cl or not pre: return
-        base=self.bucket.get(st["cat"]) or set(self.pop)
+        # Contradiction is a fact about PRODUCTS, not about one bucket: two clues
+        # contradict when no product anywhere carries both. Scoping the proof to
+        # the current bucket made cross-bucket contradictions unprovable - and a
+        # true product switch is exactly the case where the bucket is wrong.
+        base=set(self.pop) if C.PROOF_BASE_GLOBAL else (self.bucket.get(st["cat"]) or set(self.pop))
         def inter(cs):
             out=set(base)
             for c in cs:

@@ -100,6 +100,18 @@ CANONICALIZE     = True    # stdlib query-rewriting: colloquial color/material w
                            # mapped onto the evaluator's vocabulary, consulted only
                            # for clues that resolved nowhere (clean input untouched
                            # by construction).
+OVERRIDE_DEMOTES_CAT = True   # an override turns the pre-override category from
+                              # knowledge into a guess (it came from disavowed
+                              # context), re-arming the R2b/R4 escapes.
+PROOF_BASE_GLOBAL    = True   # contradiction proof runs catalog-wide: two clues
+                              # contradict when NO product carries both — a fact
+                              # about products, not about one bucket.
+# Adopted together 31 Aug after the 2x2 sweep: complementary, not additive —
+# demote alone +0.084 (escapes open, poison remains), global proof alone -0.001
+# (prunes what nothing can use), BOTH +0.181 on true product switches
+# (hit 0.493 -> 0.691). Official 200 and all six conditions byte-identical;
+# official override MRR stays 1.000. Accepted trade: mild-drift B_drift -0.0075
+# against severe-drift F_switch +0.181 — same phenomenon, net strongly positive.
 TRUST_BM25_WHEN_UNRESOLVED = True
 # If clues exist but none resolve in the exact index, the exact set still
 # equals the untouched base pool and should not override BM25 ordering.
