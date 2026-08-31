@@ -1,116 +1,93 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1508 452" font-family="-apple-system,'Segoe UI',system-ui,sans-serif" role="img" aria-label="Per-turn flow, left to right: parse, remember, narrow through a seven-route cascade, rank, schedule, ask, reply — and the customer's reply loops back to parse">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1384 436" font-family="-apple-system,'Segoe UI',system-ui,sans-serif" role="img" aria-label="Per-turn flow, left to right: understand the message, remember preferences, shortlist products, order them, choose how many to show, ask one question, answer - and the shopper's reply starts the next turn">
 <defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,1 L9,5 L0,9 z" fill="#6B7779"/></marker>
 <marker id="b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,1 L9,5 L0,9 z" fill="#0F5D56"/></marker></defs>
-<rect x="0" y="0" width="1508" height="452" rx="10" fill="#F4F6F4"/>
+<rect x="0" y="0" width="1384" height="436" rx="10" fill="#F4F6F4"/>
 <text x="20" y="32" font-size="15" font-weight="600" letter-spacing="1.6" fill="#0F5D56">ONLINE — EVERY TURN</text>
 
-<!-- loop back: reply -> parse -->
-<path d="M 1390 96 L 1390 62 L 98 62 L 98 88" stroke="#0F5D56" stroke-width="2" fill="none" stroke-dasharray="7,5" marker-end="url(#b)"/>
-<text x="754" y="54" text-anchor="middle" font-size="14.5" font-weight="600" fill="#0F5D56">The customer's reply starts the next turn — up to 10 turns</text>
+<path d="M 1286 96 L 1286 62 L 98 62 L 98 88" stroke="#0F5D56" stroke-width="2" fill="none" stroke-dasharray="7,5" marker-end="url(#b)"/>
+<text x="692" y="54" text-anchor="middle" font-size="14.5" font-weight="600" fill="#0F5D56">The shopper's reply starts the next turn — up to 10 turns</text>
 
-<!-- 1 PARSE -->
+<!-- 1 -->
 <rect x="12" y="96" width="172" height="316" rx="8" fill="#FFFFFF" stroke="#D7DDDA" stroke-width="1.5"/>
 <text x="26" y="122" font-size="12.5" font-weight="600" fill="#0F5D56">1 · PARSE</text>
-<text x="26" y="150" font-size="21" font-weight="700" fill="#14191A">Route the</text>
-<text x="26" y="173" font-size="21" font-weight="700" fill="#14191A">intent</text>
-<text x="26" y="206" font-size="14.5" fill="#3C4749">8 template shapes:</text>
-<text x="26" y="227" font-size="14.5" fill="#3C4749">buying, browsing,</text>
-<text x="26" y="248" font-size="14.5" fill="#3C4749">override, boundary</text>
-<text x="26" y="279" font-size="14.5" fill="#3C4749">Fuzzy category fix</text>
-<text x="26" y="300" font-size="14.5" fill="#3C4749">counts as a guess</text>
-<text x="26" y="331" font-size="14.5" fill="#9C5308">An override</text>
-<text x="26" y="352" font-size="14.5" fill="#9C5308">demotes the</text>
-<text x="26" y="373" font-size="14.5" fill="#9C5308">category</text>
-<line x1="184" y1="254" x2="202" y2="254" stroke="#6B7779" stroke-width="2.2" marker-end="url(#a)"/>
+<text x="26" y="150" font-size="21" font-weight="700" fill="#14191A">Understand</text>
+<text x="26" y="206" font-size="14.5" fill="#3C4749">• Reads the</text>
+<text x="36" y="227" font-size="14.5" fill="#3C4749">shopper's message</text>
+<text x="26" y="254" font-size="14.5" fill="#3C4749">• Works out what</text>
+<text x="36" y="275" font-size="14.5" fill="#3C4749">they want</text>
+<text x="26" y="302" font-size="14.5" fill="#3C4749">• Notices when they</text>
+<text x="36" y="323" font-size="14.5" fill="#3C4749">change their mind</text>
+<line x1="186" y1="254" x2="200" y2="254" stroke="#6B7779" stroke-width="2.2" marker-end="url(#a)"/>
 
-<!-- 2 REMEMBER -->
+<!-- 2 -->
 <rect x="210" y="96" width="172" height="316" rx="8" fill="#FFFFFF" stroke="#D7DDDA" stroke-width="1.5"/>
 <text x="224" y="122" font-size="12.5" font-weight="600" fill="#0F5D56">2 · REMEMBER</text>
-<text x="224" y="150" font-size="21" font-weight="700" fill="#14191A">Keep the</text>
-<text x="224" y="173" font-size="21" font-weight="700" fill="#14191A">slots</text>
-<text x="224" y="206" font-size="14.5" fill="#3C4749">Clues accumulate;</text>
-<text x="224" y="227" font-size="14.5" fill="#3C4749">filler filtered out</text>
-<text x="224" y="258" font-size="14.5" fill="#3C4749">Old slots stay</text>
-<text x="224" y="279" font-size="14.5" fill="#3C4749">true of the target</text>
-<text x="224" y="310" font-size="14.5" fill="#9C5308">Erase a slot only</text>
-<text x="224" y="331" font-size="14.5" fill="#9C5308">on catalog-wide</text>
-<text x="224" y="352" font-size="14.5" fill="#9C5308">proof of</text>
-<text x="224" y="373" font-size="14.5" fill="#9C5308">contradiction</text>
-<line x1="382" y1="254" x2="400" y2="254" stroke="#6B7779" stroke-width="2.2" marker-end="url(#a)"/>
+<text x="224" y="150" font-size="21" font-weight="700" fill="#14191A">Remember</text>
+<text x="224" y="206" font-size="14.5" fill="#3C4749">• Keeps every</text>
+<text x="234" y="227" font-size="14.5" fill="#3C4749">preference heard</text>
+<text x="234" y="248" font-size="14.5" fill="#3C4749">so far</text>
+<text x="224" y="275" font-size="14.5" fill="#3C4749">• Drops one only</text>
+<text x="234" y="296" font-size="14.5" fill="#3C4749">if it's proven</text>
+<text x="234" y="317" font-size="14.5" fill="#3C4749">impossible</text>
+<line x1="384" y1="254" x2="398" y2="254" stroke="#6B7779" stroke-width="2.2" marker-end="url(#a)"/>
 
-<!-- 3 NARROW -->
-<rect x="408" y="96" width="296" height="316" rx="8" fill="#FFFFFF" stroke="#D7DDDA" stroke-width="1.5"/>
+<!-- 3 -->
+<rect x="408" y="96" width="172" height="316" rx="8" fill="#FFFFFF" stroke="#D7DDDA" stroke-width="1.5"/>
 <text x="422" y="122" font-size="12.5" font-weight="600" fill="#0F5D56">3 · NARROW</text>
-<text x="422" y="150" font-size="21" font-weight="700" fill="#14191A">Retrieval cascade</text>
-<text x="422" y="171" font-size="13" fill="#6B7779">First decisive route wins</text>
-<rect x="422" y="182" width="268" height="28" rx="5" fill="#FAFBFA" stroke="#D7DDDA"/>
-<text x="432" y="201" font-size="14.5" fill="#3C4749"><tspan font-weight="700" fill="#14191A">R1</tspan>  Category bucket</text>
-<rect x="422" y="215" width="268" height="28" rx="5" fill="#FAFBFA" stroke="#D7DDDA"/>
-<text x="432" y="234" font-size="14.5" fill="#3C4749"><tspan font-weight="700" fill="#14191A">R2</tspan>  Exact clue intersection</text>
-<rect x="422" y="248" width="268" height="28" rx="5" fill="#FAFBFA" stroke="#D7DDDA"/>
-<text x="432" y="267" font-size="14.5" fill="#3C4749"><tspan font-weight="700" fill="#14191A">R2b</tspan> No-category ∩ <tspan fill="#9C5308" font-size="12">if guessed</tspan></text>
-<rect x="422" y="281" width="268" height="46" rx="5" fill="#FAFBFA" stroke="#9C5308"/>
-<text x="432" y="299" font-size="14.5" fill="#3C4749">Unresolved lane <tspan fill="#9C5308" font-size="12">if no clue resolves</tspan></text>
-<text x="432" y="319" font-size="13" fill="#6B7779">canonicalize → trust BM25 → dense</text>
-<rect x="422" y="332" width="268" height="28" rx="5" fill="#FAFBFA" stroke="#D7DDDA"/>
-<text x="432" y="351" font-size="14.5" fill="#3C4749"><tspan font-weight="700" fill="#14191A">R3</tspan>  BM25 keyword</text>
-<rect x="422" y="365" width="268" height="28" rx="5" fill="#FAFBFA" stroke="#D7DDDA"/>
-<text x="432" y="384" font-size="14.5" fill="#3C4749"><tspan font-weight="700" fill="#14191A">R4</tspan>  Widen <tspan fill="#9C5308" font-size="12">if guessed</tspan>  · <tspan font-weight="700" fill="#14191A">R5</tspan> Floor</text>
-<line x1="704" y1="254" x2="722" y2="254" stroke="#6B7779" stroke-width="2.2" marker-end="url(#a)"/>
+<text x="422" y="150" font-size="21" font-weight="700" fill="#14191A">Shortlist</text>
+<text x="422" y="206" font-size="14.5" fill="#3C4749">• Filters to the</text>
+<text x="432" y="227" font-size="14.5" fill="#3C4749">right product type</text>
+<text x="422" y="254" font-size="14.5" fill="#3C4749">• Keeps items that</text>
+<text x="432" y="275" font-size="14.5" fill="#3C4749">match every</text>
+<text x="432" y="296" font-size="14.5" fill="#3C4749">preference</text>
+<text x="422" y="323" font-size="14.5" fill="#3C4749">• If words differ,</text>
+<text x="432" y="344" font-size="14.5" fill="#3C4749">smarter lookups</text>
+<text x="422" y="371" font-size="14.5" fill="#3C4749">• Last resort: most</text>
+<text x="432" y="392" font-size="14.5" fill="#3C4749">popular items</text>
+<line x1="582" y1="254" x2="596" y2="254" stroke="#6B7779" stroke-width="2.2" marker-end="url(#a)"/>
 
-<!-- 4 RANK -->
-<rect x="730" y="96" width="172" height="316" rx="8" fill="#FFFFFF" stroke="#D7DDDA" stroke-width="1.5"/>
-<text x="744" y="122" font-size="12.5" font-weight="600" fill="#0F5D56">4 · RANK</text>
-<text x="744" y="150" font-size="21" font-weight="700" fill="#14191A">Local</text>
-<text x="744" y="173" font-size="21" font-weight="700" fill="#14191A">scoring</text>
-<text x="744" y="206" font-size="14.5" fill="#3C4749">Popularity prior</text>
-<text x="744" y="227" font-size="14.5" fill="#3C4749">blended with the</text>
-<text x="744" y="248" font-size="14.5" fill="#3C4749">user-profile</text>
-<text x="744" y="269" font-size="14.5" fill="#3C4749">affinity</text>
-<text x="744" y="300" font-size="14.5" fill="#3C4749">Deterministic</text>
-<text x="744" y="321" font-size="14.5" fill="#3C4749">parent_asin</text>
-<text x="744" y="342" font-size="14.5" fill="#3C4749">tie-break</text>
-<line x1="902" y1="254" x2="920" y2="254" stroke="#6B7779" stroke-width="2.2" marker-end="url(#a)"/>
+<!-- 4 -->
+<rect x="606" y="96" width="172" height="316" rx="8" fill="#FFFFFF" stroke="#D7DDDA" stroke-width="1.5"/>
+<text x="620" y="122" font-size="12.5" font-weight="600" fill="#0F5D56">4 · RANK</text>
+<text x="620" y="150" font-size="21" font-weight="700" fill="#14191A">Order</text>
+<text x="620" y="206" font-size="14.5" fill="#3C4749">• Best matches first</text>
+<text x="620" y="233" font-size="14.5" fill="#3C4749">• Popularity and</text>
+<text x="630" y="254" font-size="14.5" fill="#3C4749">personal taste</text>
+<text x="630" y="275" font-size="14.5" fill="#3C4749">break ties</text>
+<line x1="780" y1="254" x2="794" y2="254" stroke="#6B7779" stroke-width="2.2" marker-end="url(#a)"/>
 
-<!-- 5 SCHEDULE -->
-<rect x="928" y="96" width="172" height="316" rx="8" fill="#FFFFFF" stroke="#D7DDDA" stroke-width="1.5"/>
-<text x="942" y="122" font-size="12.5" font-weight="600" fill="#0F5D56">5 · SCHEDULE</text>
-<text x="942" y="150" font-size="21" font-weight="700" fill="#14191A">Slot-value</text>
-<text x="942" y="173" font-size="21" font-weight="700" fill="#14191A">paging</text>
-<text x="942" y="206" font-size="14.5" fill="#3C4749">How many cards</text>
-<text x="942" y="227" font-size="14.5" fill="#3C4749">to show now vs</text>
-<text x="942" y="248" font-size="14.5" fill="#3C4749">hold for a</text>
-<text x="942" y="269" font-size="14.5" fill="#3C4749">better slot</text>
-<text x="942" y="300" font-size="14.5" fill="#3C4749">Low-evidence</text>
-<text x="942" y="321" font-size="14.5" fill="#3C4749">turns show one</text>
-<text x="942" y="342" font-size="14.5" fill="#3C4749">card; pages</text>
-<text x="942" y="363" font-size="14.5" fill="#3C4749">deeper later</text>
-<line x1="1100" y1="254" x2="1118" y2="254" stroke="#6B7779" stroke-width="2.2" marker-end="url(#a)"/>
+<!-- 5 -->
+<rect x="804" y="96" width="172" height="316" rx="8" fill="#FFFFFF" stroke="#D7DDDA" stroke-width="1.5"/>
+<text x="818" y="122" font-size="12.5" font-weight="600" fill="#0F5D56">5 · SCHEDULE</text>
+<text x="818" y="150" font-size="21" font-weight="700" fill="#14191A">Choose how</text>
+<text x="818" y="173" font-size="21" font-weight="700" fill="#14191A">many to show</text>
+<text x="818" y="206" font-size="14.5" fill="#3C4749">• Confident? Show</text>
+<text x="828" y="227" font-size="14.5" fill="#3C4749">the top pick</text>
+<text x="818" y="254" font-size="14.5" fill="#3C4749">• Unsure? Hold the</text>
+<text x="828" y="275" font-size="14.5" fill="#3C4749">best for next turn</text>
+<text x="818" y="302" font-size="14.5" fill="#3C4749">• New items each</text>
+<text x="828" y="323" font-size="14.5" fill="#3C4749">turn, no repeats</text>
+<line x1="978" y1="254" x2="992" y2="254" stroke="#6B7779" stroke-width="2.2" marker-end="url(#a)"/>
 
-<!-- 6 ASK -->
-<rect x="1126" y="96" width="172" height="316" rx="8" fill="#FFFFFF" stroke="#D7DDDA" stroke-width="1.5"/>
-<text x="1140" y="122" font-size="12.5" font-weight="600" fill="#0F5D56">6 · ASK</text>
-<text x="1140" y="150" font-size="21" font-weight="700" fill="#14191A">Clarify,</text>
-<text x="1140" y="173" font-size="21" font-weight="700" fill="#14191A">always</text>
-<text x="1140" y="206" font-size="14.5" fill="#3C4749">One structured</text>
-<text x="1140" y="227" font-size="14.5" fill="#3C4749">attribute</text>
-<text x="1140" y="248" font-size="14.5" fill="#3C4749">question per turn</text>
-<text x="1140" y="279" font-size="14.5" fill="#3C4749">Acknowledges</text>
-<text x="1140" y="300" font-size="14.5" fill="#3C4749">each clue; thanks</text>
-<text x="1140" y="321" font-size="14.5" fill="#3C4749">and stops when</text>
-<text x="1140" y="342" font-size="14.5" fill="#3C4749">drained</text>
-<line x1="1298" y1="254" x2="1316" y2="254" stroke="#6B7779" stroke-width="2.2" marker-end="url(#a)"/>
+<!-- 6 -->
+<rect x="1002" y="96" width="172" height="316" rx="8" fill="#FFFFFF" stroke="#D7DDDA" stroke-width="1.5"/>
+<text x="1016" y="122" font-size="12.5" font-weight="600" fill="#0F5D56">6 · ASK</text>
+<text x="1016" y="150" font-size="21" font-weight="700" fill="#14191A">Ask one</text>
+<text x="1016" y="173" font-size="21" font-weight="700" fill="#14191A">question</text>
+<text x="1016" y="206" font-size="14.5" fill="#3C4749">• One short</text>
+<text x="1026" y="227" font-size="14.5" fill="#3C4749">question per turn</text>
+<text x="1016" y="254" font-size="14.5" fill="#3C4749">• Stops asking</text>
+<text x="1026" y="275" font-size="14.5" fill="#3C4749">when the shopper</text>
+<text x="1026" y="296" font-size="14.5" fill="#3C4749">is done</text>
+<line x1="1176" y1="254" x2="1190" y2="254" stroke="#6B7779" stroke-width="2.2" marker-end="url(#a)"/>
 
-<!-- 7 REPLY -->
-<rect x="1324" y="96" width="172" height="316" rx="8" fill="#FFFFFF" stroke="#D7DDDA" stroke-width="1.5"/>
-<text x="1338" y="122" font-size="12.5" font-weight="600" fill="#0F5D56">7 · REPLY</text>
-<text x="1338" y="150" font-size="21" font-weight="700" fill="#14191A">Fail-safe</text>
-<text x="1338" y="173" font-size="21" font-weight="700" fill="#14191A">out</text>
-<text x="1338" y="206" font-size="14.5" fill="#3C4749">10 product IDs</text>
-<text x="1338" y="227" font-size="14.5" fill="#3C4749">+ 1 question</text>
-<text x="1338" y="258" font-size="14.5" fill="#3C4749">Any fault falls</text>
-<text x="1338" y="279" font-size="14.5" fill="#3C4749">back to the last</text>
-<text x="1338" y="300" font-size="14.5" fill="#3C4749">good page —</text>
-<text x="1338" y="321" font-size="14.5" fill="#3C4749">never raises</text>
-<text x="20" y="440" font-size="14" fill="#6B7779">Amber notes are evidence gates: the expensive route runs only when the cheap one has provably failed</text>
+<!-- 7 -->
+<rect x="1200" y="96" width="172" height="316" rx="8" fill="#FFFFFF" stroke="#D7DDDA" stroke-width="1.5"/>
+<text x="1214" y="122" font-size="12.5" font-weight="600" fill="#0F5D56">7 · REPLY</text>
+<text x="1214" y="150" font-size="21" font-weight="700" fill="#14191A">Answer</text>
+<text x="1214" y="206" font-size="14.5" fill="#3C4749">• Up to 10 products</text>
+<text x="1224" y="227" font-size="14.5" fill="#3C4749">plus the question</text>
+<text x="1214" y="254" font-size="14.5" fill="#3C4749">• If a step fails,</text>
+<text x="1224" y="275" font-size="14.5" fill="#3C4749">reuse the last</text>
+<text x="1224" y="296" font-size="14.5" fill="#3C4749">good list</text>
 </svg>

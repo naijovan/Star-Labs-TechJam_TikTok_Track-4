@@ -18,22 +18,55 @@ any `PYTHONHASHSEED`, guaranteed by a full ordering on every sort.
 
 ![Offline build: the catalog feeds an intent_card replay, which builds five in-memory indexes plus an optional dense encoder](submission/pipeline_offline.svg)
 
-The build replays the evaluator's own `intent_card()` over the catalog, so the
-indexes hold what each product *would say in a conversation*, not just what
-its description contains. That one decision is why exact constraint
-intersection resolves most sessions in two turns.
+What each build step does for robustness, in plain terms:
+
+- **Card replay** — the agent indexes the exact sentences a shopper could say
+  about each product, so matching never depends on guessing how a description
+  might be phrased.
+- **Clue index** — whole preferences are matched exactly; a damaged phrase
+  simply fails to match and falls through to the next step, instead of
+  matching the wrong product.
+- **Category buckets** — the product type is locked from the first message;
+  if it doesn't match a known type exactly, it is treated as a guess so later
+  steps are allowed to look outside it.
+- **BM25 word index** — a keyword safety net that still works when
+  preferences arrive reworded or with words missing.
+- **Popularity + profile priors** — a sensible ordering for turns where the
+  conversation has given nothing to filter on yet.
+- **Canonicalizer** — translates casual words into catalog words (violet →
+  purple), consulted only when nothing matched.
+- **Dense encoder (optional)** — meaning-based matching for heavy rewording;
+  off by default so scoring never depends on extra software or a network.
 
 **Online — every turn (0.06 ms median):**
 
 ![Per-turn flow: parse, remember, narrow through a seven-route cascade, rank, schedule, ask, reply](submission/pipeline_online.svg)
 
-One discipline organizes the whole cascade: **escalate only on a failure
-signature.** A category that had to be fuzzily repaired re-arms the wide
-routes; a constraint that resolves nowhere in the exact index opens the
-canonicalizer → BM25-trust → dense lane; an intent override demotes the
-pre-override category to a guess and erases a remembered slot only when the
-catalog proves no product satisfies both values. Nothing expensive runs while
-the cheap path is winning.
+What each turn step does for robustness, in plain terms:
+
+- **Understand** — anything not recognized with certainty is recorded as a
+  guess, not a fact, so one wrong reading can never lock the agent in.
+- **Remember** — nothing the shopper said is thrown away casually; a
+  preference is dropped only when the catalog proves no product can satisfy
+  both it and the newer one, and a mind-change downgrades the old product
+  type back to a guess.
+- **Shortlist** — the strictest filter runs first and falls back one level at
+  a time; there is always a next step, so a misleading message can't leave
+  the agent stuck or empty-handed.
+- **Order** — the same input always produces the same list (a fixed
+  tie-break), so behaviour is reproducible and testable.
+- **Choose how many to show** — the agent shows only what it is confident
+  about, saves strong candidates for the top spot next turn, and never
+  repeats itself, so every turn adds new coverage.
+- **Ask one question** — a question every turn keeps new information flowing,
+  and the asking stops once the shopper has nothing left, so no turn is
+  wasted on a dead end.
+- **Answer** — every step runs inside a safety net: if anything fails, the
+  agent returns its last good list instead of an error, because an error
+  would forfeit the turn.
+
+The theme across all of it: **the expensive or looser step runs only after
+the simple, precise one has provably failed.**
 
 ## Setup and reproduction
 
