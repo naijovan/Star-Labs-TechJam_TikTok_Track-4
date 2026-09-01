@@ -138,7 +138,10 @@ What each turn step does for robustness, in plain terms:
   tie-break), so behaviour is reproducible and testable.
 - **Choose how many to show** — the agent shows only what it is confident
   about, saves strong candidates for the top spot next turn, and never
-  repeats itself, so every turn adds new coverage.
+  re-offers a card that could already have scored, so every turn adds new
+  coverage. (Cards shown while a mind-change is still pending are the one
+  exception: those turns cannot score, so they are deliberately not counted
+  as already-seen.)
 - **Ask one question** — a question every turn keeps new information flowing,
   and the asking stops once the shopper has nothing left, so no turn is
   wasted on a dead end.
