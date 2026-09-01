@@ -289,37 +289,17 @@ scripts and their results are retained in `tools/`.
 
 ## Team — Star Labs
 
-Every mechanism below was adopted only after it beat the measurement on a
-shared test battery, so each name here corresponds to code that survived that
-gate.
+Nothing shipped on argument. Every mechanism below beat the measurement on a shared test battery first, so each name here corresponds to code that survived that gate.
 
-- **Jovan** — Team lead. Designed the architecture and the evidence-gated
-  retrieval cascade. Built the intent-override handling (demoting the
-  pre-switch category and proving contradictions catalog-wide, worth +0.181
-  on true product switches), the lexical canonicalizer, and the 10,000-session
-  and turn-1 stress suites. Owned integration and regression verification, and
-  found the determinism bug — untied sorts making every A/B comparison noise —
-  whose one-line fix made the whole measurement programme trustworthy.
-- **Germaine** — Lead tester, and the source of several shipped mechanisms.
-  Generated thousands of adversarial sessions designed to break the agent, and
-  contributed the slot-value scheduler, the category-free clue intersection,
-  the rule that trusts BM25's ordering when no constraint resolves (our single
-  largest robustness gain), and the turn-1 one-card cap that took clean MRR to
-  1.0000. Also caught the working-directory bug that would have scored an
-  entire run as zero.
-- **Ben** — Assisted with architecture and pipeline design, and ran testing.
-  Researched paraphrase recovery — recovering constraints from reworded
-  messages, a denormalizer for conversational phrasings, and word-count
-  category matching — which substantially lifts our worst-case template
-  condition, and wrote a unit-test suite for the agent's turn policy.
-- **Marcus** — Assisted with pipeline flow design and contributed the
-  evidence-free one-card rule, which improved all six corruption conditions
-  and took browsing and boundary MRR to 1.000. Identified that a failure in
-  `reset()` is unguarded by the evaluator and would abort a whole run. Audited
-  the write-up against the code before publication, catching stale performance
-  figures and an overstated claim. Drove the Devpost submission.
-- **Pinwei** — Contributed to pipeline ideation, edited the Devpost write-up,
-  and produced the demo video.
+**Jovan** — Team lead. Designed the architecture and the evidence-gated retrieval cascade. Built the intent-override handling, which demotes the pre-switch category and proves contradictions catalog-wide and is worth +0.181 on true product switches. Also built the lexical canonicalizer and the 10,000-session and turn-1 stress suites. Owned integration and regression verification. Found the determinism bug, where untied sorts made every A/B comparison noise, and the one-line fix for it is what made the rest of our measurements trustworthy.
+
+**Germaine** — Lead tester, and the source of several shipped mechanisms. Generated thousands of adversarial sessions built to break the agent. Contributed the slot-value scheduler, the category-free clue intersection, the turn-1 one-card cap that took clean MRR to 1.0000, and the rule that trusts BM25's ordering when no constraint resolves, which is our single largest robustness gain. Also caught the working-directory bug that would have scored a whole run as zero.
+
+**Ben** — Assisted with architecture and pipeline design, and ran testing. Researched paraphrase recovery: recovering constraints from reworded messages, a denormalizer for conversational phrasings, and word-count category matching. It lifts our worst-case template condition substantially. Wrote the unit-test suite for the agent's turn policy.
+
+**Marcus** — Assisted with pipeline flow design and contributed the evidence-free one-card rule, which improved all six corruption conditions and took browsing and boundary MRR to 1.000. Found that a failure in `reset()` is unguarded by the evaluator and would abort a whole run. Audited the write-up against the code before publication and caught stale performance figures and an overstated claim. Drove the Devpost submission.
+
+**Pinwei** — Owned how the work reads to anyone outside the team. Contributed to pipeline ideation, then shaped the submission: the elevator pitch, the framing of the project description, and the sections explaining why the problem matters and who the agent is for. Storyboarded the demo video, wrote and narrated the script, and set the order the story gets told in — the problem, the two pipelines, a live session, the results, then what we got wrong. Our agent runs in a terminal with no interface, so every choice about what a viewer sees and when was his.
 
 ## Acknowledgments
 
