@@ -289,10 +289,18 @@ scripts and their results are retained in `tools/`.
 
 ## Team — Star Labs
 
-- **Jovan** — [to be filled]
-- **Germaine** — [to be filled]
-- **Ben** — [to be filled]
-- **Marcus** — [to be filled]
+- **Jovan** — Team lead. Designed the architecture and pipeline flow for the
+  agent, found the loopholes and failure modes within it, and ran the testing
+  that verified each change actually improved the pipeline.
+- **Germaine** — Lead tester. Generated thousands of adversarial sessions
+  designed to break the agent, and contributed pipeline amendments that
+  improved the score with no regressions.
+- **Ben** — Assisted with the architecture and pipeline design, and ran
+  testing.
+- **Marcus** — Assisted with the pipeline flow design, and with the Devpost
+  submission details.
+- **Pinwei** — Assisted with pipeline ideation, video editing, and the Devpost
+  submission.
 
 ## Acknowledgments
 
