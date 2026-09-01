@@ -58,7 +58,7 @@ mid-session — is in [traces/session_public_0144.json](traces/session_public_01
 
 ## How it works
 
-**Offline — built once at startup (3.5 s):**
+**Offline — built once at startup (~6 s):**
 
 ![Offline build: the catalog feeds an intent_card replay, which builds five in-memory indexes plus an optional dense encoder](submission/pipeline_offline.svg)
 
@@ -85,7 +85,7 @@ What each build step does for robustness, in plain terms:
 <details>
 <summary><b>Under the hood — the offline build, technically</b></summary>
 
-The build is a single pass over the catalog (3.5 s, ~341 MiB in memory,
+The build is a single pass over the catalog (~6 s, ~724 MiB resident,
 standard library only, nothing persisted — rebuilt at every startup; the
 catalog itself stays read-only). The key decision: instead of indexing raw
 product text, the agent runs the evaluator's own `intent_card()` constructor
@@ -119,7 +119,7 @@ vocabulary by construction, which is what makes exact matching viable at all.
 
 </details>
 
-**Online — every turn (0.06 ms median):**
+**Online — every turn (0.26 ms median):**
 
 ![Per-turn flow: understand, remember, shortlist, order, choose how many to show, ask one question, answer](submission/pipeline_online.svg)
 

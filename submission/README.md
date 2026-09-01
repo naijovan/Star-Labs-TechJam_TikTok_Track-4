@@ -72,8 +72,9 @@ Disclosed per `docs/final_evaluation_faq.md` §3.
 | Dependencies | None; Python standard library only |
 | Hardware used | MacBook Pro (Apple M4), 16 GB RAM. No GPU or MPS used |
 | Network | None required. No external service is contacted |
-| Startup | ~3.5 s one-time index build, ~341 MiB resident |
-| Latency | **0.06 ms median per turn** |
+| Startup | ~6 s one-time index build (~12 s on a slower laptop) |
+| Latency | **0.26 ms median per turn** (p95 2.9 ms, worst 96.8 ms) |
+| Memory | ~724 MiB after build; ~938 MiB peak during a 200-session run, which includes the evaluator's own catalog copy |
 
 Fallback behaviour: every stage is wrapped fail-safe — on any internal fault
 the agent returns its last known-good page rather than raising, since an

@@ -62,7 +62,9 @@ config is a modification of the frozen solution.
 | GPU / MPS | Not used |
 | Dependencies | None (standard library only) |
 | Network | Not required, none contacted |
-| Startup | ~3.5 s, ~341 MiB resident |
-| Latency | 0.06 ms median per turn |
+| Startup | ~6 s (measured 6.03 s) |
+| Memory | ~724 MiB after build; ~938 MiB peak across a 200-session run |
+| Latency | 0.26 ms median per turn (p95 2.9 ms, worst 96.8 ms) |
+| Full run | build + 200 sessions in 6.8 s wall clock |
 | Tokens / cost | 0 / $0 |
 | Determinism | `results.json` byte-identical across `PYTHONHASHSEED` 0 and 1337 |
