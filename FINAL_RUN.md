@@ -9,7 +9,8 @@ after the package is released.
 
 - [ ] Submitted commit is tagged `submission` and pushed.
 - [ ] Devpost links the public repository and the demo video.
-- [ ] Record the commit hash on Devpost and here: `________________`
+- [x] Submission commit: `2a74e47c97dbebacaa01bc250671b874439aaa77` (tag `submission`)
+- [ ] Record that hash on Devpost
 
 ## When the final package is released
 
