@@ -24,15 +24,18 @@ FUZZY_CATEGORY   = 0.60    # difflib cutoff when the leaked category misses a bu
 WEAK_ABS         = 1.5     # top BM25 score below this => weak evidence
 WEAK_RATIO       = 1.15    # top1/top2 below this => flat distribution => weak
 # Dense escalation lane — opt-in via environment, never on by default.
-# The scoring path must survive a no-network, no-third-party-deps, unknown-timeout
-# harness, so the default is the pure-stdlib cascade (identical score on every
-# official-shape condition). Setting TECHJAM_DENSE=1 enables the lane IF
-# sentence-transformers imports and weights are available; every failure mode
-# (missing deps, missing weights, no network) falls back silently to stdlib.
 # Measured with the resolution gate: byte-identical on clean/drops/category,
-# +0.036 on synonym-paraphrased constraints. Cost: ~75 s startup on MPS (longer
-# CPU-only — the reason this is opt-in rather than auto: a harness timeout kill
-# is a zeroed run, and their timeout cannot be detected from inside).
+# +0.036 on synonym-paraphrased constraints. Paraphrase is the ONLY condition
+# where it gains, and docs/final_evaluation_faq.md (published 31 Aug) states
+# the final evaluation uses the same deterministic templates with "no
+# undisclosed natural-language paraphrases", so that gain cannot be realised
+# on the scored set. It therefore stays off, and the cost of enabling it is
+# real: ~75 s startup on MPS, longer CPU-only, plus a torch dependency.
+# NOTE: the FAQ also permits network access and external APIs for final
+# scoring and imposes no per-response timeout, so this default is a measured
+# choice, not a compliance constraint. Setting TECHJAM_DENSE=1 enables the
+# lane IF sentence-transformers imports and weights are available; every
+# failure mode (missing deps, missing weights, no network) falls back to stdlib.
 USE_DENSE        = os.environ.get("TECHJAM_DENSE", "").strip().lower() not in ("", "0", "false")
 DENSE_MODEL      = "BAAI/bge-small-en-v1.5"
 CAT_BOOST        = 4.0     # score multiplier when the guessed bucket matches

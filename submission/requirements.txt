@@ -1,12 +1,14 @@
 # Star Labs - TechJam 2026 Track 4 - submission requirements
 #
 # The scoring path has NO third-party dependencies. The agent is pure Python
-# standard library: json, math, re, difflib, collections, pathlib.
+# standard library: json, math, re, difflib, collections, sqlite3, pathlib.
 # There is nothing to pip install.
 #
-# It makes NO network calls and needs NO API credentials, so it runs unchanged
-# under the organizer's network-disabled scoring policy (docs/submission_rules.md).
-# Reported token usage is zero.
+# It makes NO network calls and needs NO API credentials. Network access IS
+# permitted for final scoring (docs/final_evaluation_faq.md section 2) — running
+# without it is a deliberate choice, not a constraint: no credentials to manage,
+# no service availability risk, no per-query cost. Reported token usage is zero,
+# which the FAQ explicitly allows for non-LLM systems.
 #
 # Python: requires >= 3.10 (PEP 604 annotations). Verified on CPython 3.11.12.
 #

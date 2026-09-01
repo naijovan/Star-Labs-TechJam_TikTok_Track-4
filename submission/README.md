@@ -47,21 +47,38 @@ any working directory works; an explicit path argument is honoured verbatim.
 
 - `TECHJAM_DENSE=1` — enables a dense-retrieval escalation lane
   (`sentence-transformers`, bge-small) that fires only when a constraint
-  resolves nowhere in the exact index. OFF by default: the official run may be
-  network-disabled and its timeout is unknown, and the clean score is
-  byte-identical either way (0.9800). Any failure (missing package, missing
-  weights, no network) falls back silently to the stdlib cascade.
+  resolves nowhere in the exact index. OFF by default: the final evaluation
+  introduces no undisclosed paraphrases (`docs/final_evaluation_faq.md` §1),
+  and paraphrased constraints are the only condition where this lane measured
+  a gain — on official-shape input the score is byte-identical either way
+  (0.9800). Network access is permitted for final scoring, so this is a
+  deliberate choice rather than a constraint: zero dependencies means no
+  credentials, no service availability risk and no per-query cost. Any failure
+  (missing package, missing weights, no network) falls back silently to the
+  stdlib cascade.
 - `TRACE_PATH` in `submission/config.py` — set to a file path to log one JSONL
   record per turn (route taken, pool size, state). Empty (off) by default.
 
 ## Feasibility disclosure (model policy)
 
-No LLM is called at inference time. Token usage: **0 prompt / 0 completion**
-per turn (reported as such in every response). API cost: **$0**; no keys used
-or required. Latency: ~3.5 s one-time index build (~341 MiB in-memory),
-**0.06 ms median per turn**. Fallback behaviour: every stage is wrapped
-fail-safe — on any internal fault the agent returns its last known-good page
-rather than raising, since an exception would score the turn empty.
+Disclosed per `docs/final_evaluation_faq.md` §3.
+
+| Item | Value |
+|---|---|
+| Model | None. No LLM is called at inference time |
+| Token usage | **0 prompt / 0 completion** per turn (reported in every response) |
+| Estimated model cost | **$0** — no keys used or required |
+| Python | CPython 3.11.12 (requires >= 3.10) |
+| Dependencies | None; Python standard library only |
+| Hardware used | MacBook Pro (Apple M4), 16 GB RAM. No GPU or MPS used |
+| Network | None required. No external service is contacted |
+| Startup | ~3.5 s one-time index build, ~341 MiB resident |
+| Latency | **0.06 ms median per turn** |
+
+Fallback behaviour: every stage is wrapped fail-safe — on any internal fault
+the agent returns its last known-good page rather than raising, since an
+exception would score the turn empty. There is no external dependency for
+which a fallback is required.
 
 ## Layout
 
