@@ -289,18 +289,37 @@ scripts and their results are retained in `tools/`.
 
 ## Team — Star Labs
 
-- **Jovan** — Team lead. Designed the architecture and pipeline flow for the
-  agent, found the loopholes and failure modes within it, and ran the testing
-  that verified each change actually improved the pipeline.
-- **Germaine** — Lead tester. Generated thousands of adversarial sessions
-  designed to break the agent, and contributed pipeline amendments that
-  improved the score with no regressions.
-- **Ben** — Assisted with the architecture and pipeline design, and ran
-  testing.
-- **Marcus** — Assisted with the pipeline flow design, and with the Devpost
-  submission details.
-- **Pinwei** — Assisted with pipeline ideation, video editing, and the Devpost
-  submission.
+Every mechanism below was adopted only after it beat the measurement on a
+shared test battery, so each name here corresponds to code that survived that
+gate.
+
+- **Jovan** — Team lead. Designed the architecture and the evidence-gated
+  retrieval cascade. Built the intent-override handling (demoting the
+  pre-switch category and proving contradictions catalog-wide, worth +0.181
+  on true product switches), the lexical canonicalizer, and the 10,000-session
+  and turn-1 stress suites. Owned integration and regression verification, and
+  found the determinism bug — untied sorts making every A/B comparison noise —
+  whose one-line fix made the whole measurement programme trustworthy.
+- **Germaine** — Lead tester, and the source of several shipped mechanisms.
+  Generated thousands of adversarial sessions designed to break the agent, and
+  contributed the slot-value scheduler, the category-free clue intersection,
+  the rule that trusts BM25's ordering when no constraint resolves (our single
+  largest robustness gain), and the turn-1 one-card cap that took clean MRR to
+  1.0000. Also caught the working-directory bug that would have scored an
+  entire run as zero.
+- **Ben** — Assisted with architecture and pipeline design, and ran testing.
+  Researched paraphrase recovery — recovering constraints from reworded
+  messages, a denormalizer for conversational phrasings, and word-count
+  category matching — which substantially lifts our worst-case template
+  condition, and wrote a unit-test suite for the agent's turn policy.
+- **Marcus** — Assisted with pipeline flow design and contributed the
+  evidence-free one-card rule, which improved all six corruption conditions
+  and took browsing and boundary MRR to 1.000. Identified that a failure in
+  `reset()` is unguarded by the evaluator and would abort a whole run. Audited
+  the write-up against the code before publication, catching stale performance
+  figures and an overstated claim. Drove the Devpost submission.
+- **Pinwei** — Contributed to pipeline ideation, edited the Devpost write-up,
+  and produced the demo video.
 
 ## Acknowledgments
 
