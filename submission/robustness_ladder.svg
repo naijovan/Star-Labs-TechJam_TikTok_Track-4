@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 480" font-family="-apple-system,'Segoe UI',system-ui,sans-serif" role="img" aria-label="Robustness ladder: score across six input-corruption conditions, ranging from 0.980 clean down to 0.946 when category and clue damage are combined">
+<rect x="0" y="0" width="1100" height="480" rx="10" fill="#F4F6F4"/>
+<text x="30" y="42" font-size="21" font-weight="700" fill="#14191A">Score when the input is damaged</text>
+<text x="30" y="66" font-size="14.5" fill="#6B7779">Same 200 sessions, corrupted six ways. Axis starts at 0.90 to make the differences visible.</text>
+
+<!-- axis -->
+<line x1="330" y1="92" x2="330" y2="392" stroke="#D7DDDA" stroke-width="1.5"/>
+<line x1="330" y1="392" x2="1050" y2="392" stroke="#D7DDDA" stroke-width="1.5"/>
+<text x="330" y="412" text-anchor="middle" font-size="12.5" fill="#6B7779">0.90</text>
+<text x="690" y="412" text-anchor="middle" font-size="12.5" fill="#6B7779">0.95</text>
+<text x="1050" y="412" text-anchor="middle" font-size="12.5" fill="#6B7779">1.00</text>
+
+<g font-size="14.5" fill="#14191A">
+  <text x="316" y="118" text-anchor="end" font-weight="700">Clean, as shipped</text>
+  <rect x="330" y="100" width="576" height="30" rx="4" fill="#0F5D56"/>
+  <text x="920" y="122" font-size="15" font-weight="700" fill="#0F5D56">0.98000</text>
+
+  <text x="316" y="164" text-anchor="end">Category words reordered</text>
+  <rect x="330" y="146" width="571" height="30" rx="4" fill="#E2EFEC" stroke="#0F5D56" stroke-width="1.5"/>
+  <text x="920" y="168" font-size="15" fill="#0F5D56">0.97930</text>
+
+  <text x="316" y="210" text-anchor="end">35% of clue words dropped</text>
+  <rect x="330" y="192" width="546" height="30" rx="4" fill="#E2EFEC" stroke="#0F5D56" stroke-width="1.5"/>
+  <text x="920" y="214" font-size="15" fill="#0F5D56">0.97590</text>
+
+  <text x="316" y="256" text-anchor="end">20% of clue words dropped</text>
+  <rect x="330" y="238" width="542" height="30" rx="4" fill="#E2EFEC" stroke="#0F5D56" stroke-width="1.5"/>
+  <text x="920" y="260" font-size="15" fill="#0F5D56">0.97524</text>
+
+  <text x="316" y="302" text-anchor="end">50% of clue words dropped</text>
+  <rect x="330" y="284" width="541" height="30" rx="4" fill="#E2EFEC" stroke="#0F5D56" stroke-width="1.5"/>
+  <text x="920" y="306" font-size="15" fill="#0F5D56">0.97510</text>
+
+  <text x="316" y="348" text-anchor="end">Category damaged + 35% dropped</text>
+  <rect x="330" y="330" width="333" height="30" rx="4" fill="#F7ECDD" stroke="#9C5308" stroke-width="1.5"/>
+  <text x="920" y="352" font-size="15" fill="#9C5308">0.94620</text>
+</g>
+
+<text x="30" y="446" font-size="13.5" fill="#6B7779">Half the constraint words destroyed costs 0.005. Damaging the category and the clues together costs 0.034 —</text>
+<text x="30" y="466" font-size="13.5" fill="#6B7779">and hit rate still holds at 0.970. For scale, the starter agent scores 0.107, far below this chart's axis.</text>
+</svg>

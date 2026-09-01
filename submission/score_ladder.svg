@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 360" font-family="-apple-system,'Segoe UI',system-ui,sans-serif" role="img" aria-label="Score ladder: the starter agent scores 0.107, a popularity-only floor scores 0.832, and the shipped agent scores 0.980 out of a maximum of 1.0">
+<rect x="0" y="0" width="1100" height="360" rx="10" fill="#F4F6F4"/>
+<text x="30" y="44" font-size="21" font-weight="700" fill="#14191A">TechnicalScore — 200 public sessions</text>
+<text x="30" y="68" font-size="14.5" fill="#6B7779">Organizer's unmodified evaluator. Scale 0 to 1.0.</text>
+
+<line x1="300" y1="90" x2="300" y2="300" stroke="#D7DDDA" stroke-width="1.5"/>
+<line x1="1060" y1="96" x2="1060" y2="300" stroke="#9C5308" stroke-width="1.5" stroke-dasharray="6,5"/>
+<text x="1052" y="322" text-anchor="end" font-size="13" fill="#9C5308">perfect 1.000</text>
+
+<!-- baseline 0.10671 -->
+<text x="286" y="130" text-anchor="end" font-size="15" font-weight="600" fill="#14191A">Starter agent</text>
+<text x="286" y="149" text-anchor="end" font-size="13" fill="#6B7779">stateless BM25, never asks</text>
+<rect x="300" y="110" width="81" height="46" rx="4" fill="#FFFFFF" stroke="#D7DDDA" stroke-width="1.5"/>
+<text x="395" y="140" font-size="17" font-weight="700" fill="#6B7779">0.107</text>
+
+<!-- floor 0.83199 -->
+<text x="286" y="202" text-anchor="end" font-size="15" font-weight="600" fill="#14191A">Popularity floor only</text>
+<text x="286" y="221" text-anchor="end" font-size="13" fill="#6B7779">no conversation used</text>
+<rect x="300" y="182" width="632" height="46" rx="4" fill="#E2EFEC" stroke="#0F5D56" stroke-width="1.5"/>
+<text x="946" y="212" font-size="17" font-weight="700" fill="#0F5D56">0.832</text>
+
+<!-- shipped 0.98 -->
+<text x="286" y="274" text-anchor="end" font-size="15" font-weight="700" fill="#14191A">Star Labs agent</text>
+<text x="286" y="293" text-anchor="end" font-size="13" fill="#6B7779">200/200 at rank 1</text>
+<rect x="300" y="254" width="745" height="46" rx="4" fill="#0F5D56"/>
+<text x="318" y="284" font-size="19" font-weight="700" fill="#FFFFFF">0.980</text>
+
+<text x="30" y="340" font-size="13.5" fill="#6B7779">A popularity-only floor already reaches 0.832 — the conversation, not the catalog, earns the last 0.148.</text>
+</svg>
