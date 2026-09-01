@@ -15,7 +15,7 @@ pure-Python retrieval cascade beat every ML variant we benchmarked against it
 (dense retrievers, cross-encoders, a 568M-parameter reranker), so the models
 stayed out and the measurements stayed in the repo.
 
-<!-- Demo video: add the YouTube link here when published -->
+**▶ [Watch the 3-minute demo](https://youtu.be/4ei1z0JC-gA)** — architecture walkthrough and a live multi-turn session.
 
 **Jump to:** [Results](#results) · [See it work](#see-it-work) ·
 [How it works](#how-it-works) · [Setup](#setup-and-reproduction) ·
